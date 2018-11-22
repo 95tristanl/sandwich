@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Trump</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+</head>
+
+<body>
+
+  <div class="menu">
+      <h1>Trump Sandwich</h1>
+      <br><br>
+      <h3>Either Start a New Game Room, or Join an Existing Game.</h3>
+      <br><br>
+      <h4>Create a new Game</h4>
+      <form>
+          <input type="text" name="username_c" placeholder="Username" required>
+          <input type="text" name="roomID_c" placeholder="Room Code" required>
+          <input type="text" name="gameSize" placeholder="Game size" required>
+          <input type="text" name="deckSize" placeholder="Deck number" required>
+          <input type="text" name="handSize" placeholder="Hand size" required>
+          <input type="text" name="refuelNum" placeholder="Card amount at which one refules" required>
+          <button id="new" onclick="createNewGameRoom(event, this.form)">New Game</button>
+      </form>
+
+      <br><br>
+      <h4>Join an existing game</h4>
+      <form>
+          <input type="text" name="username_j" placeholder="Username" required>
+          <input type="text" name="roomID_j" placeholder="Existing Room Code" required>
+          <button id="join" onclick="joinGameRoom(event, this.form)">Join Game</button>
+      </form>
+  </div>
+
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+<!-- Above is for lobby, below is for game room -->
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+
+  <!--
+  <div >
+      <div>
+          <img id="1" src="/images/1.png" onclick="console.log(this.id)" draggable="false"/>
+          <img id="8" src="/images/8.png" onclick="console.log(this.id)" draggable="false"/>
+          <img id="10" src="/images/10.png" onclick="console.log(this.id)" draggable="false"/>
+      </div>
+  </div>
+  -->
+
+<!-- <script src="/socket.io/socket.io.js"></script> -->
+<script src="src/client.js"></script>
+</body>
+</html>
