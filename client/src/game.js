@@ -36,8 +36,10 @@ class Player {
         this.gameOver = ["F", ""];
         this.isBattle = false;
         this.isDerby = false;
+        this.isDerby_toServ = false;
         this.isBattle_toServ = ["F", ""];
         this.isSandwich_toServ = ["F", ""];
+        this.battleStack_Players = [];
         this.score = 0; //how many cards have you won
         this.gameSize = -1;
         this.dict_varData = {}; // dict of users , user : [handSize, stillIn, yourTurn, score]
@@ -172,13 +174,16 @@ function scoreboard(server_dict_varData) {
     for (let key in user.dict_varData) {
         //update paly typle box
         let pt_div = document.getElementById("playType");
-        if (!user.isBattle && !user.isDerby) { //normal
+        if (!user.isBattle && !user.isDerby && pt_div.style.backgroundColor !== "limegreen") { //normal
+            console.log("Scoreboard in Norm. ");
             pt_div.style.backgroundColor = "limegreen";
             pt_div.innerHTML = "Normal";
-        } else if (user.isBattle) {
+        } else if (user.isBattle && pt_div.innerHTML !== "Battle!!") {
+            console.log("Scoreboard in Battle. ");
             pt_div.style.backgroundColor = "deepskyblue";
             pt_div.innerHTML = "Battle!!";
-        } else if (user.isDerby) {
+        } else if (user.isDerby && pt_div.innerHTML !== "Derby!") {
+            console.log("Scoreboard in Derby. ");
             pt_div.style.backgroundColor = "orange";
             pt_div.innerHTML = "Derby!";
         }
@@ -221,32 +226,37 @@ function playGame_keepUpdatingFromServer() { //called every timestep (some amoun
             user: user.username
         },
         function(data, status) {
-            if (user.higherIsBetter !== data.higherIsBetter) { //only update if incoming flag is diff from users flag
-                user.higherIsBetter = data.higherIsBetter;
-                if (data.higherIsBetter) {
+            let server_data = JSON.parse(data.server_data);
+            console.log("test_TEST: " + server_data.tester);
+            if (user.higherIsBetter !== server_data.higherIsBetter) { //only update if incoming flag is diff from users flag
+                user.higherIsBetter = server_data.higherIsBetter;
+                if (server_data.higherIsBetter) {
                     document.getElementById("value").innerHTML = "Higher is Better";
                 } else {
                     document.getElementById("value").innerHTML = "Lower is Better";
                 }
             }
-            user.isBattle = data.isBattle;
-            user.isDerby = data.isDerby;
-            user.hand = data.hand; //update before setHand() below
-            if (user.cardPile.length < data.cardPile.length) { //if incoming data is diff then update
-                renderLastPlayed(data.cardPile[0]);
+            user.isBattle = server_data.isBattle;
+            user.isDerby = server_data.isDerby;
+            console.log("isDerby? " + user.isDerby);
+            user.battleStack_Players = server_data.battleStack_Players;
+            user.hand = server_data.hand; //update before setHand() below
+            if (user.cardPile.length < server_data.cardPile.length) { //if incoming data is diff then update
+                renderLastPlayed(server_data.cardPile[0]);
                 //renderCardPile();
-            } else if (data.cardPile.length === 0 && user.cardPile.length !== 0) {
+            } else if (server_data.cardPile.length === 0 && user.cardPile.length !== 0) {
+                user.isDerby_toServ = false;
                 resetCardPile(); //resets card pile because round ended and incoming card pile is empty so user pile should be too
                 alert("New Round!");
                 setHand(); //can only refuel after a round is over.
             }
-            user.cardPile = data.cardPile;
-            scoreboard(data.dict_varData); // update displays of each players: handSize, stillIn, yourTurn, score
-            user.dict_varData = data.dict_varData;
-            user.yourTurn = data.dict_varData[user.username][2]; //updates if its your turn
-            user.gameOver = data.gameOver;
-            if (user.cardsInDeck !== data.cardsInDeck) {
-                user.cardsInDeck = data.cardsInDeck;
+            user.cardPile = server_data.cardPile;
+            scoreboard(server_data.dict_varData); // update displays of each players: handSize, stillIn, yourTurn, score
+            user.dict_varData = server_data.dict_varData;
+            user.yourTurn = server_data.dict_varData[user.username][2]; //updates if its your turn
+            user.gameOver = server_data.gameOver;
+            if (user.cardsInDeck !== server_data.cardsInDeck) {
+                user.cardsInDeck = server_data.cardsInDeck;
                 document.getElementById("cardDeck").innerHTML = "Cards Left: " + user.cardsInDeck; //display num cards left in deck
             }
             playGame_afterServerUpdate();
@@ -341,8 +351,9 @@ function playGame_afterServerUpdate() { //called every second
                     post_obj.usersTurn = user.yourTurn;
                     post_obj.isBattle = user.isBattle_toServ;
                     post_obj.isSandwich = user.isSandwich_toServ;
-                    post_obj.isDerby = user.isDerby;
+                    post_obj.isDerby = user.isDerby_toServ;
                     let post_JSON = JSON.stringify(post_obj);
+                    console.log("Posting isDerby: " + user.isDerby_toServ);
                     //once played, send data to server, only after your turn
                     $.post('/turnOver_update_clientToServer',
                         {
@@ -354,15 +365,19 @@ function playGame_afterServerUpdate() { //called every second
                             user.isSandwich_toServ = ["F", ""];
                             console.log("SUCCESS!! on sending data to SERVER!");
                     });
-                    console.log(user.isBattle_toServ);
-                    console.log(user.isSandwich_toServ);
                 }
             } else { //ran out of cards...
                 user.stillIn = false;
                 user.yourTurn = false;
             }
         } else { //not your turn so wait
-            document.getElementById("battleButton").style.display = "block";
+            if (user.battleStack_Players.indexOf(user.username) >= 0) { //if user is already playing in a battle, remove the battle button
+                document.getElementById("battleButton").style.display = "none";
+                console.log("No battle button, already in bat");
+            } else {
+                document.getElementById("battleButton").style.display = "block";
+                console.log("batt");
+            }
         }
     } else { //game is over
         clearInterval(keepUpdating); //stop client from querying server
@@ -371,12 +386,15 @@ function playGame_afterServerUpdate() { //called every second
     //using if statements not while statements so eveything waiting/ending related is in the else block
 }
 
+
 function pass() {
     console.log("Passed!");
     user.playedMove_toServ = [[], 'pass', user.username];
     resetSelected(); //remove cards from cardSelectedStack after action
     user.hasPlayed = true;
     user.stillIn = true;
+    user.yourTurn = false; //reset turn bool
+    console.log("passing, isDerby: " + user.isDerby);
 }
 
 function battleSandwich() { //if was not clients turn but decided to battle/sandwhich
@@ -408,14 +426,17 @@ function battleSandwich() { //if was not clients turn but decided to battle/sand
             if (usersCard === lastPlayedCard) {
                 if (user.cardSelectedStack.length === lastPlay.length) {
                     user.isBattle_toServ = ["T", lastFoe]; //set flag to indicate battle order of play
-                    //alert("BATTLE!"); // valid, BATTLE
+                    alert("BATTLE!"); // valid, BATTLE
                 } else if (user.cardSelectedStack.length < lastPlay.length) {
                     playable = false; // not valid
                     alert("Its a Derby. You need to play more cards!");
                 } else if (user.cardSelectedStack.length > lastPlay.length) {
-                    user.isDerby = true; //set flag to indicate derby order of play
                     user.isSandwich_toServ = ["T", lastFoe];
                     alert("SANDWICH! And a DERBY!");
+                }
+                if (playable && user.cardSelectedStack.length > 1) {
+                    user.isDerby_toServ = true; //set flag to indicate derby order of play
+                    console.log("set isDerby to TRUE");
                 }
             } else {
                 playable = false; // not valid battle
@@ -434,6 +455,7 @@ function battleSandwich() { //if was not clients turn but decided to battle/sand
         resetSelected(); //remove cards from cardSelectedStack after action
         user.stillIn = true;
         user.yourTurn = true; //reset turn bool
+        postClientDataToServer();
         let post_obj = {};
         post_obj.roomID = roomID;
         post_obj.user = user.username;
@@ -442,7 +464,7 @@ function battleSandwich() { //if was not clients turn but decided to battle/sand
         post_obj.usersTurn = user.yourTurn;
         post_obj.isBattle = user.isBattle_toServ;
         post_obj.isSandwich = user.isSandwich_toServ;
-        post_obj.isDerby = user.isDerby;
+        post_obj.isDerby = user.isDerby_toServ;
         let post_JSON = JSON.stringify(post_obj);
         console.log("Sending... - - - - - .");
         //once played, send data to server, only after your turn
@@ -457,8 +479,6 @@ function battleSandwich() { //if was not clients turn but decided to battle/sand
                 console.log("SUCCESS!! on sending data to SERVER!");
 
         });
-        console.log(user.isBattle_toServ);
-        console.log(user.isSandwich_toServ);
     }
 }
 
@@ -499,6 +519,7 @@ function play() {
                     if (user.cardSelectedStack.length === lastPlay.length) {
                         if (user.higherIsBetter && usersCard > lastPlayedCard ) {
                             // valid
+                            console.log("valid");
                         } else if (user.higherIsBetter && usersCard < lastPlayedCard ) {
                             playable = false; // not valid
                             alert("Higher is better. You need to play a higher hand than what was just played.");
@@ -507,6 +528,7 @@ function play() {
                             alert("Lower is better. You need to play a lower hand than what was just played.");
                         } else if (!user.higherIsBetter && usersCard < lastPlayedCard ) {
                             // valid
+                            console.log("also valid");
                         } else if (usersCard === lastPlayedCard) {
                             console.log("Last foe: " + lastFoe);
                             user.isBattle_toServ = ["T", lastFoe]; //set flag to indicate battle order of play
@@ -515,14 +537,25 @@ function play() {
                     } else if (user.cardSelectedStack.length < lastPlay.length) {
                         playable = false; // not valid
                         alert("Its a Derby. You need to play more cards!");
-                    } else if (user.cardSelectedStack.length > lastPlay.length) {
-                        user.isDerby = true; //set flag to indicate derby order of play
+                    } else if (user.cardSelectedStack.length > lastPlay.length && lastPlay.length > 1 ||
+                               user.cardSelectedStack.length > lastPlay.length && lastPlay.length === 1 && user.higherIsBetter && usersCard >= lastPlayedCard ||
+                               user.cardSelectedStack.length > lastPlay.length && lastPlay.length === 1 && !user.higherIsBetter && usersCard <= lastPlayedCard) {
+                        console.log("derbs");
                         if (usersCard === lastPlayedCard) {
                             user.isSandwich_toServ = ["T", lastFoe];
                             alert("SANDWICH! And a DERBY!");
                         } else {
-                            alert("DERBY!");
+                            //valid
                         }
+                    }
+
+                    if (playable && user.cardSelectedStack.length > 1) {
+                        user.isDerby_toServ = true; //set flag to indicate derby order of play
+                        console.log("set isDerby to TRUE");
+                        alert("DERBY!");
+                    } else {
+                        console.log(user.cardSelectedStack.length);
+                        alert(playable);
                     }
                 }
             }
