@@ -982,5 +982,6 @@ function renderLastPlayed(last) {
     }
     else if (last[1] === 'pass') {
         //render nothing because player passed
+        //safs
     }
 }

@@ -8,7 +8,7 @@
 "use strict";
 
 module.exports = app => {
-    // Creating a new game room
+    // Creating a new game room ...
     app.post('/createdGame', async (req, res) => {
         try {
             let tmp1 = {};
