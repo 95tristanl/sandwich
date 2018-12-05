@@ -36,6 +36,7 @@ module.exports = app => {
                 isBattle: false,
                 isDerby: false,
                 orderOfPlay: {meh: "poopy"}, //just init with a val that is never going to be used
+                chatList: [], //hold last 10 chat messeges
                 dict_hands: tmp1,
                 dict_varData: tmp2
             });
@@ -524,7 +525,6 @@ module.exports = app => {
                     console.log("No Schema Found!");
                     res.status(300).send({error: "No Schema Found!"});
                 } else {
-                    let abc = "123432";
                     let server_obj = {};
                     server_obj.hand = schema.dict_hands[req.body.user];
                     server_obj.higherIsBetter =  schema.higherIsBetter;
@@ -535,23 +535,39 @@ module.exports = app => {
                     server_obj.battleStack_Players = schema.battleStack_Players;
                     server_obj.isDerby = schema.isDerby;
                     server_obj.gameOver = schema.gameOver;
-                    server_obj.tester = abc;
+                    server_obj.chatList = schema.chatList;
                     let server_JSON = JSON.stringify(server_obj);
 
                     res.status(200).send({
                         server_data: server_JSON
-                        /*
-                        hand: schema.dict_hands[req.body.user],
-                        higherIsBetter: schema.higherIsBetter,
-                        cardPile: schema.cardPile,
-                        cardsInDeck: schema.deck.length,
-                        dict_varData: schema.dict_varData,
-                        isBattle: schema.isBattle,
-                        battleStack_Players: schema.battleStack_Players,
-                        isDerby: schema.isDerby,
-                        gameOver: schema.gameOver
-                        */
                     });
+                }
+            }
+        });
+    });
+
+    //saves incoming msgs
+    app.post('/chatRoom', async(req, res) => {
+        let data = JSON.parse(req.body.user_data);
+        await app.models.Game.findOne({roomID: data.roomID}, async function (err, schema) {
+            if (err) {
+                console.log("Game Not Found!");
+                res.status(404).send({ error: 'Game Not Found!' });
+            } else {
+                if (schema === null) {
+                    console.log("No Schema Found!");
+                    res.status(300).send({error: "No Schema Found!"});
+                } else {
+                    try {
+                        if (schema.chatList.length > 10) {
+                            schema.splice(10, 1); //remove last / 11th element
+                        }
+                        schema.chatList.unshift(data.user + " : " + data.msg);
+
+                        await schema.save();
+                    } catch (err) {
+                        res.status(404).send({ error: 'Could not save schema data!' });
+                    }
                 }
             }
         });

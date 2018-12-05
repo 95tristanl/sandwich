@@ -1,15 +1,9 @@
 
 
 function tmp() {
-    let a = ["a", "b"];
-    let b = "15b";
-    let dd = [];
-    //dd[0].push("poop");
-    let winner =  a[0] == "b";
-
-    let c = "wild";
-    //a.splice(a.indexOf("b"), 1)
-    console.log(dd.length);
+    let a = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k"];
+    a.splice(10, 1);
+    console.log(a);
 
 
 }

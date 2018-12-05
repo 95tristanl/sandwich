@@ -82,18 +82,18 @@
   <!-- can only be seen and clicked on by the lord if everyone has joined -->
   <button id="startGameButton" onclick="startGame_justLord(event)">Start Game!</button>
 
-  <div>
-      <form id="chat-form">
-          <input id="chat-input" />
-          <button>Send</button>
-      </form>
-  </div>
-
-  <div>
-      <ul id="chatList"></ul>
-  </div>
-
   <h1 id="h1">H1</h1>
+
+  <div>
+        <form id="chat_form">
+            <input id="chat_input" name="msg" placeholder="messege" />
+            <button onclick="sendChatMessege(event, this.form)">Send Messege</button>
+        </form>
+    </div>
+
+    <div>
+        <ul id="chat_list"></ul>
+    </div>
 
   <!-- <script src="/socket.io/socket.io.js"></script> -->
   <script src="src/game.js"></script>

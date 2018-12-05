@@ -29,6 +29,7 @@ let Game = new Schema({
     isBattle: { type: Boolean, default: false },
     isDerby: { type: Boolean, default: false },
     orderOfPlay: {},  //a dictionary, stores who plays after who, order of play
+    chatList: [], // list of strings = messeges sent by people
     dict_hands: {},   //a dictionary at 0 index of this list
     dict_varData: {} //a dictionary at 0 index of this list
 });

@@ -44,6 +44,7 @@ class Player {
         this.gameSize = -1;
         this.dict_varData = {}; // dict of users , user : [handSize, stillIn, yourTurn, score]
         this.refuelNum = 0;
+        this.chatList = [];
     }
 }
 
@@ -259,6 +260,7 @@ function playGame_keepUpdatingFromServer() { //called every timestep (some amoun
                 user.cardsInDeck = server_data.cardsInDeck;
                 document.getElementById("cardDeck").innerHTML = "Cards Left: " + user.cardsInDeck; //display num cards left in deck
             }
+            updateChatList(server_data.chatList);
             playGame_afterServerUpdate();
     });
 }
@@ -455,7 +457,6 @@ function battleSandwich() { //if was not clients turn but decided to battle/sand
         resetSelected(); //remove cards from cardSelectedStack after action
         user.stillIn = true;
         user.yourTurn = true; //reset turn bool
-        postClientDataToServer();
         let post_obj = {};
         post_obj.roomID = roomID;
         post_obj.user = user.username;
@@ -711,7 +712,7 @@ function createMenu(div_) {
             {val : "6s", text: '6'},
             {val : "7h", text: '7'},
             {val : "8d", text: '8'},
-            {val : "9c", text: '9'},
+            {val : "9j", text: '9'}, //9c
             {val : "10s", text: '10'},
             {val : "11h", text: 'Jack'},
             {val : "12d", text: 'Queen'},
@@ -736,7 +737,7 @@ function createMenu(div_) {
             let new_id = img_id.substr(0, img_id.length - l) + option_val; //grabs everything but orig hand val, and concats new val
             document.getElementById(img_id).id = new_id; //set divs id to the new id so it
             document.getElementById( "div_" + img_id ).id = "div_" + new_id; //set divs id to the new id so it
-            cardsSelected(new_id, img_id)
+            cardsSelected(new_id, img_id);
         });
         //set div and img ids to have val "2s" as is in menu initially
         let img_ID = div_.id.substr(4); //gets img id
@@ -758,33 +759,42 @@ function cardsSelected(img_ID, old_ID){
     document.getElementById("nineButton").style.display = "none";
     let div_ID = 'div_' + img_ID;
     let img = img_ID.split("_")[2]; //grabs just the img
+    let tmp_old_img = old_ID.split("_")[2]; //grabs just the img
     let d = document.getElementById(div_ID);
     let pos = user.cardSelectedStack.indexOf(div_ID);
     if (old_ID === "") { //a direct string change is not needed, push or pop is needed
         if ( pos >= 0 ) { //if the id is in the array, its already selected, so UNhighlight it
-            if (div_ID.indexOf('9', 10) >= 0 && user.cardSelectedStack.length === 1 ) { //selected card was a 9, 12 is for '9' past 12 index
+            if (div_ID.indexOf('9', 10) >= 0 && user.cardSelectedStack.length === 1 ) { //selected card was a 9, 10 is for '9' past 10 index
                 document.getElementById("nineButton").style.display = "none";
             }
             d.style.backgroundColor = "white";
             user.cardSelectedStack.splice(pos, 1);
             user.cardSelectedStack_toServ.splice(pos, 1); //has same functionality as cardSelectedStack
         } else { //if its not in the array then Highlight the card and add it to the array
-            if (div_ID.indexOf('9', 10) >= 0 && user.cardSelectedStack.length === 0) { //only selected card is a 9
+            if (div_ID.indexOf('9', 10) >= 0 && user.cardSelectedStack.length === 0 && img !== "9j") { //only selected card is a 9 (not from joker)
                 document.getElementById("nineButton").style.display = "block";
             }
             d.style.backgroundColor = "blue";
             user.cardSelectedStack.push(div_ID);
-            user.cardSelectedStack_toServ.push(img);
+            if (img === "9j") {
+                user.cardSelectedStack_toServ.push("9c");
+            } else {
+                user.cardSelectedStack_toServ.push(img);
+            }
         }
         if (user.cardSelectedStack.length > 1) {
             document.getElementById("nineButton").style.display = "none";
-        } else if (user.cardSelectedStack.length === 1 && user.cardSelectedStack[0].indexOf('9', 10) >= 0 ) {
+        } else if (user.cardSelectedStack.length === 1 && user.cardSelectedStack[0].indexOf('9', 10) >= 0 && user.cardSelectedStack[0].indexOf('9j', 10) < 0) { //only selected card is a 9 (not from joker)
             document.getElementById("nineButton").style.display = "block";
         }
     } else { //find and change the old id to the new id : joker menu is changed while its selected
         pos = user.cardSelectedStack.indexOf("div_" + old_ID);
         user.cardSelectedStack[pos] = div_ID;
-        user.cardSelectedStack_toServ[pos] = img;
+        if (img === "9j") {
+            user.cardSelectedStack_toServ[pos] = "9c";
+        } else {
+            user.cardSelectedStack_toServ[pos] = img;
+        }
     }
 }
 
@@ -983,5 +993,74 @@ function renderLastPlayed(last) {
     else if (last[1] === 'pass') {
         //render nothing because player passed
         //safs
+    }
+}
+
+
+function sendChatMessege(event, form) {
+    event.preventDefault();
+
+    /*
+    let chat_lst = document.getElementById("chat_list");
+    let li = document.createElement("LI");
+    li.innerHTML = form.msg.value;
+    chat_lst.insertBefore(li, chat_lst.firstChild);
+
+    if (chat_lst.children.length >= 10) {
+        chat_lst.childNodes.item(10).remove();
+    }
+    */
+
+    let chat_obj = {};
+    chat_obj.roomID = roomID;
+    chat_obj.user = user.username;
+    chat_obj.msg = form.msg.value;
+    let chat_JSON = JSON.stringify(chat_obj);
+    console.log("Sending chat msg: " + form.msg.value);
+    document.getElementById("chat_input").msg.value = ""; //reset input box
+    //once played, send data to server, only after your turn
+    $.post('/chatRoom',
+        {
+            user_data: chat_JSON
+        },
+        function(data, status) {
+            console.log("SUCCESS!! on sending chat msg to SERVER!");
+    });
+}
+
+function updateChatList(lst) {
+    console.log("chat method: ");
+    let pos = 9;
+    if (user.chatList.length === 0 && lst.length > 0) {
+        user.chatList = lst;
+        let chat_lst = document.getElementById("chat_list");
+        for (let j = 0; j < lst.length; j++) {
+            console.log("chat add beg");
+            let x = document.createElement("LI");
+            x.innerHTML = lst[j];
+            chat_lst.appendChild(x);
+        }
+    } else if (user.chatList[0] !== lst[0]) {
+        for (let i = 1; i < lst.length; i++) {
+            if (user.chatList[0] === lst[i]) { //i = the number of indexes off so need to update to that point
+                pos = i;
+                console.log("pos: " + i);
+                break;
+            }
+        }
+        user.chatList = lst;
+        let chat_lst = document.getElementById("chat_list");
+        for (let j = pos - 1; j >= 0; j--) {
+            console.log("chat add");
+            let x = document.createElement("LI");
+            x.innerHTML = lst[j];
+            chat_lst.insertBefore(x, chat_lst.firstChild);
+            if (chat_lst.children.length >= 10) {
+                console.log("chat rem");
+                chat_lst.childNodes.item(10).remove();
+            }
+        }
+    } else {
+        //they are same, no update needed.
     }
 }
