@@ -228,10 +228,6 @@ function playGame_keepUpdatingFromServer() { //called every timestep (some amoun
             user.isDerby = server_data.isDerby;
             user.battleStack_Players = server_data.battleStack_Players;
             user.hand = server_data.hand; //update before setHand() below
-            console.log("Getting card pile data:");
-            console.log(user.cardPile);
-            console.log(server_data.cardPile);
-            console.log("Getting card pile data ... done");
             if (user.cardPile.length < server_data.cardPile.length) { //if incoming data is diff then update
                 renderLastPlayed(server_data.cardPile[0]);
                 //renderCardPile();
@@ -278,9 +274,9 @@ function playGame_afterServerUpdate() { //called every second
 
                 // - - - TIMER STUFF ***
                 //start timer obj
-                user.timerObj.timeoutNum = 31000;
+                user.timerObj.timeoutNum = 31000; //31 seconds to play
                 user.timerObj.startTimeMS = Math.round( ((new Date()).getTime())/1000 );
-                user.timerObj.timeoutVar = setTimeout(autoPlay, user.timerObj.timeoutNum); //20 seconds
+                //user.timerObj.timeoutVar = setTimeout(autoPlay, user.timerObj.timeoutNum); //31 seconds
                 // - - - TIMER STUFF ***
 
                 if (user.isBattle) {
@@ -323,21 +319,29 @@ function playGame_afterServerUpdate() { //called every second
                     let passedTime = Math.round( curTime - user.timerObj.startTimeMS );
                     let timeLeft = Math.round( (user.timerObj.timeoutNum / 1000) - passedTime ); //in sec
 
-                    if (timeLeft > 20) {
+                    if (timeLeft >= 20) {
                         divClock.style.backgroundColor = "green";
                         divClock.innerHTML = timeLeft;
-                    } else if (timeLeft <= 20 && timeLeft > 10) {
+                    } else if (timeLeft < 20 && timeLeft >= 10) {
                         divClock.style.backgroundColor = "orange";
                         divClock.innerHTML = timeLeft;
-                    } else if (timeLeft <= 10) {
+                    } else if (timeLeft < 10 && timeLeft >= 0) {
                         divClock.style.backgroundColor = "red";
                         divClock.innerHTML = timeLeft;
+                    } else if (timeLeft < 0) {
+                        console.log("- NEG ");
+                        //clearTimeout(user.timerObj.timeoutVar); //stop timer
+                        alert("Forced... Auto played, you ran out of time.");
+                        divClock.style.backgroundColor = "white";
+                        divClock.innerHTML = 30;
+                        autoPlay();
                     }
                     // - - - TIMER STUFF ***
 
                 } else { //played
                     console.log("played!");
                     if (divClock.style.backgroundColor !== "white" || divClock.innerHTML !== 30) { // reset clock
+                        console.log("reset clock display");
                         divClock.style.backgroundColor = "white";
                         divClock.innerHTML = 30;
                     }
@@ -385,7 +389,7 @@ function playGame_afterServerUpdate() { //called every second
 
 function pass() {
     if (user.isDerby) {
-        clearTimeout(user.timerObj.timeoutVar); //stop timer
+        //clearTimeout(user.timerObj.timeoutVar); //stop timer
         user.playedMove_toServ = [[], 'pass', user.username];
         resetSelected(); //remove cards from cardSelectedStack after action
         user.hasPlayed = true;
@@ -544,7 +548,7 @@ function play() {
             alert("Either you didn't select a card/cards or you tried to play different types of cards!");
         }
         if (playable) {
-            clearTimeout(user.timerObj.timeoutVar); //stop timer
+            //clearTimeout(user.timerObj.timeoutVar); //stop timer
             removeSelectedFromHand("");
             user.playedMove_toServ = [user.cardSelectedStack_toServ, 'play', user.username]; //going to serv
             resetSelected(); //remove cards from cardSelectedStack after action
@@ -574,7 +578,7 @@ function allSame() {
 
 //displays folded cards on pile, hill only happen/appear if user is still in and its not a Derby
 function fold() {
-    clearTimeout(user.timerObj.timeoutVar); //stop timer
+    //clearTimeout(user.timerObj.timeoutVar); //stop timer
     removeSelectedFromHand(""); //removes card from hand
     user.playedMove_toServ = [user.cardSelectedStack_toServ, 'fold', user.username];
     resetSelected(); //remove cards from cardSelectedStack after action
@@ -585,25 +589,20 @@ function fold() {
 
 //player ran out of time so auto play for them: if Derby => pass, otherwise => fold
 function autoPlay() {
-    clearTimeout(user.timerObj.timeoutVar); //stop timer
-    console.log("auto played");
-    if (user.yourTurn) {
-        if (user.isDerby) { //is Derby so pass
-            user.playedMove_toServ = [[], 'pass', user.username];
-            user.stillIn = true; //out of round
-            console.log("auto passed...");
-        } else { //fold because its normal play
-            let randomCardNum = Math.floor((Math.random() * user.hand.length));
-            console.log("randomCardNum " + randomCardNum);
-            console.log("auto chose " + randomCardNum + " " + user.hand[randomCardNum]);
-            user.playedMove_toServ = [[user.hand[randomCardNum]], 'fold', user.username]; //if it chose a joker, joker will be set to a 2
-            removeSelectedFromHand(randomCardNum); //removes div/img from hand display given hand index and removes card from hand array []
-            user.stillIn = false; //out of round
-        }
-        user.hasPlayed = true;
-        resetSelected_AUTO(); //remove cards from cardSelectedStack after action
-        alert('Auto Played. You ran out of time.');
+    console.log("In Auto Play");
+    if (user.isDerby) { //is Derby so pass
+        user.playedMove_toServ = [[], 'pass', user.username];
+        user.stillIn = true; //out of round
+        console.log("auto passed...");
+    } else { //fold because its normal play
+        let randomCardNum = Math.floor((Math.random() * user.hand.length));
+        user.playedMove_toServ = [[user.hand[randomCardNum]], 'fold', user.username]; //if it chose a joker, joker will be set to a 2
+        removeSelectedFromHand(randomCardNum); //removes div/img from hand display given hand index and removes card from hand array []
+        user.stillIn = false; //out of round
     }
+    user.hasPlayed = true;
+    resetSelected_AUTO(); //remove cards from cardSelectedStack after action
+    //alert('Auto Played. You ran out of time.');
 }
 
 
@@ -626,14 +625,13 @@ function nine() {
                 document.getElementById("value").innerHTML = "Higher";
                 isHigher = "T";
             }
-            clearTimeout(user.timerObj.timeoutVar); //stop timer
+            //clearTimeout(user.timerObj.timeoutVar); //stop timer
             removeSelectedFromHand(""); //removes card from hand (only card selected)
             user.playedMove_toServ = [[isHigher], 'wild', user.username];
             resetSelected(); //remove cards from cardSelectedStack and hand array after action
             document.getElementById("nineButton").style.display = "none";
             user.stillIn = true; //out of round
             user.hasPlayed = true;
-            //clearTimeout(timeoutVar);
         } else {
             alert("9 is NOT PLAYABLE, its a DERBY...");
             //currently is a derby so cant play a nine bc its a single card, cant play more than 1 nine either
@@ -700,36 +698,25 @@ function createMenu(div_) {
         });
 
         sel.on("change", function(event) {
-            console.log("change . . .");
             let option_text = $(this).children("option:selected").text();
             let option_val = $(this).children("option:selected").val();
             //the whole point here is that we are re-assigning the div and img
             //ids to new ids so they represent a specific val instead of wild
             let img_id = $(this).parent().children(0).get(0).id;
-            document.getElementById("h1").innerHTML = option_val;
             let l = img_id.split("_")[2].length;
             let new_id = img_id.substr(0, img_id.length - l) + option_val; //grabs everything but orig hand val, and concats new val
             document.getElementById(img_id).id = new_id; //set divs id to the new id so it
             document.getElementById( "div_" + img_id ).id = "div_" + new_id; //set divs id to the new id so it
-            console.log(user.hand);
-            console.log("ind: " + img_id.split("_")[1] + " : " + option_val);
             user.hand[img_id.split("_")[1]] = option_val; //update the users hand array at index of joker to new option value
-            console.log(user.hand);
-            console.log("ind: " + img_id.split("_")[1] + " : " + option_val);
             cardsSelected(new_id, img_id);
         });
         //set div and img ids to have val "2s" as is in menu initially
         let img_ID = div_.id.substr(4); //gets img id, excludes: "div_"
         let l = img_ID.split("_")[2].length;
         let new_id = img_ID.substr(0, img_ID.length - l) + "2s"; //grabs everything but orig hand val, and concats new val
-        console.log("Joker stuff");
         document.getElementById(img_ID).id = new_id; //set img id to the new id so it
         document.getElementById(div_.id).id = "div_" + new_id; //set divs id to the new id so it
-        console.log(user.hand);
         user.hand[img_ID.split("_")[1]] = "2s"; //update the users hand array at index of joker to new option value
-        console.log(user.hand);
-        console.log("ind: " + img_id.split("_")[1] + " : " + "2s");
-        //for debugging : document.getElementById("h1").innerHTML = (document.getElementById(new_id).id).split("_")[2];
 }
 
 

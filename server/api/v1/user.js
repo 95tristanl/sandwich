@@ -181,9 +181,6 @@ module.exports = app => {
                 } else {
                     try {
                         console.log("cli to serv");
-                        console.log(schema.dict_varData);
-                        console.log(schema.dict_hands);
-                        console.log(data.usersHand);
                         let battleOver = false;
                         let derbyOver = false;
                         let maybeWinner = ""; //won round
@@ -195,8 +192,6 @@ module.exports = app => {
                         schema.dict_hands[data.user] = data.usersHand; //update dict_hands
                         schema.markModified(`dict_hands.${data.user}`); //save changes to dict_hands
                         schema.dict_varData[data.user][0] = data.usersHand.length; //update amount of cards in his hand
-                        console.log(data.usersTurn);
-                        console.log(data.user);
                         schema.dict_varData[data.user][2] = data.usersTurn; //update turn index of dict_varData for user
                         schema.markModified(`dict_varData.${data.user}`); //save changes to dict_varData
 
@@ -319,9 +314,7 @@ module.exports = app => {
                                 derbyOver = aFlag; //this ends the round if true
                             } else {
                                 console.log("NORMAL PLAY");
-                                console.log(data.usersMove);
                                 schema.cardPile.unshift(data.usersMove); //put move on top of cardPile (in front of array)
-                                console.log(schema.cardPile);
                                 if (data.usersMove[1] === "play" && data.usersMove[0][0].substr(0,2) === "15") { //Ace was played so end round
                                     isAce = true; //only when not a battle and not a derby
                                 } else if (data.usersMove[1] === "wild") { //wild 9 was played, update higherIsBetter.
@@ -331,12 +324,9 @@ module.exports = app => {
                                         schema.higherIsBetter = false;
                                     }
                                 } else if (data.usersMove[1] === "fold") {
-                                    console.log("FOLDED!");
                                     schema.dict_varData[data.user][1] = false; //that person folded so is no longer in round
                                     schema.markModified(`dict_varData.${data.user}`);
-                                    console.log(schema.dict_varData);
                                 }
-                                console.log(schema.dict_varData);
 
                                 if (isAce) { //ace was played outside of a battle
                                     maybeWinner = data.user;
@@ -356,8 +346,6 @@ module.exports = app => {
                         }
 
                         console.log(schema.dict_varData);
-                        console.log(stillIn_count);
-                        console.log(maybeWinner);
 
                         //everything/code comes back here no matter if battle, derby or normal
                         if (!schema.isBattle || battleOver || derbyOver) { //only skip over this if in the middle of a battle
@@ -385,7 +373,6 @@ module.exports = app => {
                                     doneCounter = 0;
                                     for (let key in schema.dict_hands) {
                                         if (schema.dict_hands[key].length < schema.refuelNum && schema.deck.length > 0) { //refuel
-                                            console.log(schema.dict_hands[key]);
                                             schema.dict_hands[key].push(schema.deck[ schema.deck.length - 1 ]);
                                             schema.markModified(`dict_hands.${key}`); //save
                                             schema.deck.pop(); //get rid of last card in deck that was just dealt to players hand
