@@ -106,6 +106,7 @@ module.exports = app => {
                         sandwichStack: schema.sandwichStack,
                         startGame: schema.startGame,
                         dict_varData: schema.dict_varData,
+                        chatList: schema.chatList,
                         hand: schema.dict_hands[req.body.user]
                     });
                 }
@@ -391,18 +392,17 @@ module.exports = app => {
                                 //update score
                                 let card_count = 0;
                                 for (let x = 0; x < schema.cardPile.length; x++) {
-                                    if (schema.cardPile[x][1] === "play") {
+                                    if (schema.cardPile[x][1] === "play" || schema.cardPile[x][1] === "fold") {
                                         card_count = card_count + schema.cardPile[x][0].length;
                                     } else if (schema.cardPile[x][1] === "battle") {
                                         for (let y = 0; y < schema.cardPile[x][0].length; y++) {
                                             card_count = card_count + schema.cardPile[x][0][y][0].length; //num cards played per person in battle
                                         }
-                                    } else {
-                                        console.log("WWAATT??");
+                                    } else if (schema.cardPile[x][1] === "wild") {
+                                        card_count = card_count + 1;
                                     }
-                                     //gonna need to change this to count cards in battle...
                                 }
-                                schema.dict_varData[maybeWinner][3] = schema.dict_varData[maybeWinner][3] + card_count;
+                                schema.dict_varData[maybeWinner][3] = schema.dict_varData[maybeWinner][3] + card_count; //adds cards from battle to score
                                 schema.markModified(`dict_varData.${maybeWinner}`); //save
 
                                 //refuel?

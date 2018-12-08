@@ -1,46 +1,27 @@
-#cardDeck {
-    background-color: gray;
-    width: 150px;
-    height: 70px;
+.waitBoard {
+    background-color: #EAA754;
+    width: 100px;
+    height: 50px;
+    color: black;
+    text-align: center;
+    vertical-align: middle;
+    margin: 5 5 5 5px;
+    line-height: 20px;
+    border-radius: 8px;
+}
+
+.info {
+    background-color: #EAA754;
+    width: 100px;
+    height: 50px;
     color: black;
     text-align: center;
     vertical-align: middle;
     margin: 20 20 20 20px;
     line-height: 20px;
+    border-radius: 8px;
 }
 
-#playType {
-    background-color: gray;
-    width: 150px;
-    height: 70px;
-    color: black;
-    text-align: center;
-    vertical-align: middle;
-    margin: 20 20 20 20px;
-    line-height: 20px;
-}
-
-#clock {
-    background-color: gray;
-    width: 150px;
-    height: 70px;
-    color: Black;
-    margin: 20 20 20 20px;
-    text-align: center;
-    vertical-align: middle;
-    line-height: 20px;
-}
-
-#value {
-    background-color: gray;
-    width: 150px;
-    height: 70px;
-    color: Black;
-    margin: 20 20 20 20px;
-    text-align: center;
-    vertical-align: middle;
-    line-height: 20px;
-}
 /*
 #cardPile {
     background-color: gray;
@@ -60,8 +41,159 @@
     height: 125px;
 }
 */
+/*
 .pInDiv {
     color: black;
     padding: 0 0 0 0px;
     margin: 0 0 0 0px;
+}
+*/
+p {
+    color: black;
+    padding: 0 0 0 0px;
+    margin: 0 0 0 0px;
+}
+
+#html_body {
+    background-color: #7F7C6A;
+}
+
+.nav_h1 {
+    color: black;
+}
+
+#nav_ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+.nav_li {
+    float: left;
+    padding: 0px 20px;
+}
+
+#color0 {
+    background-color: #EAA754;
+}
+
+#color1 {
+    background-color: #FE3D20;
+}
+
+#color2 {
+    background-color: #6DF260;
+}
+
+#color3 {
+    background-color: #4392F1;
+}
+
+#color4 {
+    background-color: #9800FF;
+}
+
+#color5 {
+    background-color: #EAA754;
+}
+
+#cardPile_title {
+    background-color: #EAA754;
+    border-radius: 50px;
+    width: 200px;
+    height: 60px;
+}
+
+#cardPile_h {
+    text-align: center;
+    line-height: 60px;
+}
+
+.bottons {
+  background-color: white; /* Green */
+  border: none;
+  border-radius: 20px;
+  color: white;
+  padding: 16px 32px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  margin: 4px 2px;
+  -webkit-transition-duration: 0.4s; /* Safari */
+  transition-duration: 0.4s;
+  cursor: pointer;
+}
+
+#playButton, #startGameButton {
+  background-color: white;
+  color: black;
+  border: 8px solid limegreen;
+}
+
+#playButton:hover, #startGameButton:hover {
+  background-color: limegreen;
+  color: white;
+}
+
+#nineButton {
+  background-color: white;
+  color: black;
+  border: 8px solid blueviolet;
+}
+
+#nineButton:hover {
+  background-color: blueviolet;
+  color: white;
+}
+
+#passButton, #chat_botton {
+  background-color: white;
+  color: black;
+  border: 8px solid tomato;
+}
+
+#passButton:hover, #chat_botton:hover {
+  background-color: tomato;
+  color: white;
+}
+
+#foldButton {
+  background-color: white;
+  color: black;
+  border: 8px solid crimson;
+}
+
+#foldButton:hover {
+    background-color: crimson;
+}
+
+#battleButton {
+  background-color: white;
+  color: black;
+  border: 8px solid deepskyblue;
+}
+
+#battleButton:hover {
+  background-color: deepskyblue;
+  color: white;
+}
+
+#chat_div {
+    background-color: #EAA754;
+    border-radius: 10px;
+}
+
+#chat_input {
+    width: 300px;
+    height: 30px;
+    border-radius: 15px;
+    border: 4px dashed black;
+    font-size: 15px;
+}
+
+.chat_li {
+    font-size: 20px;
+    color: purple;
 }

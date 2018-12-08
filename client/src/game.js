@@ -65,7 +65,7 @@ window.onload = () => {
     let hl = window.location.href;
     let ind = hl.indexOf("roomID");
     roomID = hl.substr(ind + 7);
-    document.getElementById("uname").innerHTML = user.username;
+    document.getElementById("p1").innerHTML = user.username;
     let waitToStartGame_interv = setInterval(waitToStartGame, 1000);
 
     function waitToStartGame() {
@@ -75,7 +75,6 @@ window.onload = () => {
                 user: user.username
             },
             function(data, status){
-                document.getElementById("p1").innerHTML = data.lord;
                 document.getElementById("p2").innerHTML = data.roomID;
                 document.getElementById("p3").innerHTML = data.gameSize;
                 document.getElementById("p4").innerHTML = data.deckSize;
@@ -88,7 +87,7 @@ window.onload = () => {
                 user.startGame = data.startGame;
                 user.cardsInDeck = data.deckSize;
                 user.dict_varData = data.dict_varData;
-                document.getElementById("cardDeck").innerHTML = "Cards Left: " + user.cardsInDeck; //display num cards left in deck
+                document.getElementById("cardDeck").innerHTML = user.cardsInDeck; //display num cards left in deck
                 document.getElementById("peeps_R").remove();
                 let tr_ = document.createElement('tr');
                 tr_.id = "peeps_R";
@@ -108,13 +107,14 @@ window.onload = () => {
                     div_.id = "sb_" + key;
                     document.getElementById("peeps_R").appendChild(td_).appendChild(div_);
                 }
+                updateChatList(data.chatList);
                 if (user.username === user.lord && !user.startGame) { //startgame button only appears for (lord) creator of room, once clicked will try and start game
                     document.getElementById('startGameButton').style.display = "block"; //display button
                 }
                 if (user.startGame) {
                     clearInterval(waitToStartGame_interv); //interval is stopped -> startGame is true -> everyone is here and lord pressed start button
                     setHand();
-                    keepUpdating = setInterval(playGame_keepUpdatingFromServer, 1000); //this starts game. goes every 3sec
+                    keepUpdating = setInterval(playGame_keepUpdatingFromServer, 8000); //this starts game. goes every 3sec
                 }
         });
     }
@@ -214,7 +214,7 @@ function scoreboard(server_dict_varData) {
         if (server_dict_varData[key][0] !== user.dict_varData[key][0]
             || server_dict_varData[key][3] !== user.dict_varData[key][3] ) {
             let div_ = document.getElementById("sb_" + key);
-            div_.innerHTML = key + "<br />" + "Cards: "+server_dict_varData[key][0] + "<br />" + "score: "+server_dict_varData[key][3]; //players name and score
+            div_.innerHTML = key + "<br />" + "Cards: " + server_dict_varData[key][0] + "<br />" + "score: " + server_dict_varData[key][3]; //players name and score
         }
     }
 }
@@ -232,9 +232,9 @@ function playGame_keepUpdatingFromServer() { //called every timestep (some amoun
             if (user.higherIsBetter !== server_data.higherIsBetter) { //only update if incoming flag is diff from users flag
                 user.higherIsBetter = server_data.higherIsBetter;
                 if (server_data.higherIsBetter) {
-                    document.getElementById("value").innerHTML = "Higher is Better";
+                    document.getElementById("value").innerHTML = "Higher";
                 } else {
-                    document.getElementById("value").innerHTML = "Lower is Better";
+                    document.getElementById("value").innerHTML = "Lower";
                 }
             }
             user.isBattle = server_data.isBattle;
@@ -258,7 +258,7 @@ function playGame_keepUpdatingFromServer() { //called every timestep (some amoun
             user.gameOver = server_data.gameOver;
             if (user.cardsInDeck !== server_data.cardsInDeck) {
                 user.cardsInDeck = server_data.cardsInDeck;
-                document.getElementById("cardDeck").innerHTML = "Cards Left: " + user.cardsInDeck; //display num cards left in deck
+                document.getElementById("cardDeck").innerHTML = user.cardsInDeck; //display num cards left in deck
             }
             updateChatList(server_data.chatList);
             playGame_afterServerUpdate();
@@ -506,12 +506,13 @@ function play() {
                         break; //the reason we loop instead of picking top of queue is because we only play against 'play' cards, not wild or fold cards.
                     }
                 }
-                if (lastPlay === '') { //user is first to play this round so as long as user doesn't play more than 1 card he can play anything
+                console.log("user.cardPile.length " + user.cardPile.length);
+                if (user.cardPile.length === 0) { //(lastPlay === '') user is first to play this round so as long as user doesn't play more than 1 card he can play anything
                     if (user.cardSelectedStack.length > 1) { //cant start with a derby
                         playable = false;
                         alert("Can't start a round by playing multiple cards (Derby).");
                     }
-                } else { //someone played before user, must beat that card(s)
+                } else if (lastPlay !== '') { //someone played before user, must beat that card(s)
                     let usersCard = user.cardSelectedStack[0].split("_")[3].substr(0, user.cardSelectedStack[0].split("_")[3].length - 1); //card value
                     let lastPlayedCard = lastPlay[0].substr(0, lastPlay[0].length - 1); //card value
                     usersCard = parseInt(usersCard); //was string
@@ -558,6 +559,8 @@ function play() {
                         console.log(user.cardSelectedStack.length);
                         alert(playable);
                     }
+                } else {
+                    //can play anything. ex. wild 9 to start, then someone can play anything they want
                 }
             }
         } else { //cards played were not all the same value
@@ -646,14 +649,14 @@ function nine() {
         }
         if (lastPlay === '' || lastPlay.length === 1) { //not a derby
             if (isHigher) {
-                document.getElementById("value").innerHTML = "Lower is Better";
+                document.getElementById("value").innerHTML = "Lower";
                 isHigher = "F";
             } else {
-                document.getElementById("value").innerHTML = "Higher is Better";
+                document.getElementById("value").innerHTML = "Higher";
                 isHigher = "T";
             }
             removeSelectedFromHand(""); //removes card from hand (only card selected)
-            user.playedMove_toServ = [[isHigher], 'wild', user.username ];
+            user.playedMove_toServ = [[isHigher], 'wild', user.username];
             resetSelected(); //remove cards from cardSelectedStack and hand array after action
             document.getElementById("nineButton").style.display = "none";
             user.stillIn = true; //out of round
@@ -717,7 +720,7 @@ function createMenu(div_) {
             {val : "11h", text: 'Jack'},
             {val : "12d", text: 'Queen'},
             {val : "13c", text: 'King'},
-            {val : "69", text: 'Rotten Egg'},
+            {val : "69", text: 'Rotten Egg'}, //if folded, whoever wins round doesn't get the points
         ];
 
         let sel = $('<select>').appendTo(div_);
@@ -745,7 +748,7 @@ function createMenu(div_) {
         let new_id = img_ID.substr(0, img_ID.length - l) + "2s"; //grabs everything but orig hand val, and concats new val
         document.getElementById(img_ID).id = new_id; //set divs id to the new id so it
         document.getElementById(div_.id).id = "div_" + new_id; //set divs id to the new id so it
-        document.getElementById("h1").innerHTML = (document.getElementById(new_id).id).split("_")[2];
+        //for debugging : document.getElementById("h1").innerHTML = (document.getElementById(new_id).id).split("_")[2];
 }
 
 
@@ -999,64 +1002,63 @@ function renderLastPlayed(last) {
 
 function sendChatMessege(event, form) {
     event.preventDefault();
-
-    /*
-    let chat_lst = document.getElementById("chat_list");
-    let li = document.createElement("LI");
-    li.innerHTML = form.msg.value;
-    chat_lst.insertBefore(li, chat_lst.firstChild);
-
-    if (chat_lst.children.length >= 10) {
-        chat_lst.childNodes.item(10).remove();
+    if (form.msg.value !== "") {
+        let chat_obj = {};
+        chat_obj.roomID = roomID;
+        chat_obj.user = user.username;
+        chat_obj.msg = form.msg.value;
+        let chat_JSON = JSON.stringify(chat_obj);
+        document.getElementById("chat_form").msg.value = ""; //reset input box
+        //console.log( "1");
+        //console.log( document.getElementById("chat_form").value );
+        //console.log( "3");
+        //console.log( document.getElementById("chat_input").value );
+        //console.log( "4");
+        //once played, send data to server, only after your turn
+        $.post('/chatRoom',
+            {
+                user_data: chat_JSON
+            },
+            function(data, status) {
+                console.log("SUCCESS!! on sending chat msg to SERVER!");
+        });
     }
-    */
-
-    let chat_obj = {};
-    chat_obj.roomID = roomID;
-    chat_obj.user = user.username;
-    chat_obj.msg = form.msg.value;
-    let chat_JSON = JSON.stringify(chat_obj);
-    console.log("Sending chat msg: " + form.msg.value);
-    document.getElementById("chat_input").msg.value = ""; //reset input box
-    //once played, send data to server, only after your turn
-    $.post('/chatRoom',
-        {
-            user_data: chat_JSON
-        },
-        function(data, status) {
-            console.log("SUCCESS!! on sending chat msg to SERVER!");
-    });
 }
 
 function updateChatList(lst) {
-    console.log("chat method: ");
-    let pos = 9;
-    if (user.chatList.length === 0 && lst.length > 0) {
+    console.log("CHAT");
+    console.log(user.chatList);
+    console.log(lst);
+    console.log("CHAT");
+    if (user.chatList.length === 0 && lst.length > 0) { //just creating chat list
         user.chatList = lst;
         let chat_lst = document.getElementById("chat_list");
         for (let j = 0; j < lst.length; j++) {
             console.log("chat add beg");
             let x = document.createElement("LI");
             x.innerHTML = lst[j];
+            x.className = "chat_li";
             chat_lst.appendChild(x);
         }
-    } else if (user.chatList[0] !== lst[0]) {
+    } else if (user.chatList[0] !== lst[0]) { //list already exists/already msgs
+        let pos = 10; //max msgs/indexes in chat lst
         for (let i = 1; i < lst.length; i++) {
-            if (user.chatList[0] === lst[i]) { //i = the number of indexes off so need to update to that point
+            if (user.chatList[0] === lst[i]) { //find number of msgs to update/queue client side
                 pos = i;
-                console.log("pos: " + i);
+                console.log("found pos: " + i);
                 break;
             }
         }
         user.chatList = lst;
         let chat_lst = document.getElementById("chat_list");
         for (let j = pos - 1; j >= 0; j--) {
-            console.log("chat add");
             let x = document.createElement("LI");
             x.innerHTML = lst[j];
+            x.className = "chat_li";
+            console.log("adding: " + lst[j]);
             chat_lst.insertBefore(x, chat_lst.firstChild);
-            if (chat_lst.children.length >= 10) {
-                console.log("chat rem");
+            if (chat_lst.children.length > 10) {
+                console.log("rem last msg");
                 chat_lst.childNodes.item(10).remove();
             }
         }
