@@ -3,8 +3,11 @@
 function tmp() {
     let a = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k"];
     a.splice(10, 1);
-    console.log(a);
 
+    let timerObj = {};
+
+    timerObj.name = "peop";
+    console.log(timerObj.name);
 
 }
 
