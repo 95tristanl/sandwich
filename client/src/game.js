@@ -46,6 +46,7 @@ class Player {
         this.refuelNum = 0;
         this.timerObj = {};
         this.chatList = [];
+        this.end_round = "false";
     }
 }
 
@@ -53,7 +54,7 @@ var lord = "asdfnsdafjknasdjkfnasdkjfasdnfnmbewmmkrnq";
 var roomID = "asjnfkajsdfhnsdajkfnrfnreuhyrewoncjbas";
 var user = new Player(localStorage.getItem('curUser')); // Retrieves from browser storage
 //var timeoutVar = "";
-var keepUpdating = "" //an interval that continuously updates client with current game data
+//var keepUpdating = "" //an interval that continuously updates client with current game data
 
 //once html page loads this is called - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 window.onload = () => {
@@ -76,7 +77,6 @@ window.onload = () => {
                 user: user.username
             },
             function(data, status){
-                document.getElementById("p2").innerHTML = data.roomID;
                 document.getElementById("p3").innerHTML = data.gameSize;
                 document.getElementById("p4").innerHTML = data.deckSize;
                 document.getElementById("p5").innerHTML = data.handSize;
@@ -104,7 +104,7 @@ window.onload = () => {
                     div_.style.verticalAlign = "middle";
                     div_.style.lineHeight = "20px";
                     div_.style.borderRadius = "20px";
-                    div_.innerHTML = key + "<br />" + "Cards: "+user.hand.length + "<br />" + "score: 0"; //players name and score
+                    div_.innerHTML = key + "<br />" + "Cards: " + user.hand.length + "<br />" + "score: 0"; //players name and score
                     div_.id = "sb_" + key;
                     document.getElementById("peeps_R").appendChild(td_).appendChild(div_);
                 }
@@ -115,7 +115,7 @@ window.onload = () => {
                 if (user.startGame) {
                     clearInterval(waitToStartGame_interv); //interval is stopped -> startGame is true -> everyone is here and lord pressed start button
                     setHand();
-                    keepUpdating = setInterval(playGame_keepUpdatingFromServer, 1000); //this starts game. goes every 3sec
+                    user.timerObj.keepUpdating = setInterval(playGame_keepUpdatingFromServer, 1000); //this starts game. goes every sec
                 }
         });
     }
@@ -228,6 +228,7 @@ function playGame_keepUpdatingFromServer() { //called every timestep (some amoun
             user.isDerby = server_data.isDerby;
             user.battleStack_Players = server_data.battleStack_Players;
             user.hand = server_data.hand; //update before setHand() below
+            /*
             if (user.cardPile.length < server_data.cardPile.length) { //if incoming data is diff then update
                 renderLastPlayed(server_data.cardPile[0]);
                 //renderCardPile();
@@ -236,6 +237,15 @@ function playGame_keepUpdatingFromServer() { //called every timestep (some amoun
                 resetCardPile(); //resets card pile because round ended and incoming card pile is empty so user pile should be too
                 alert("New Round!");
                 setHand(); //can only refuel after a round is over.
+            }
+            */
+            if (user.cardPile.length < server_data.cardPile.length) {
+                console.log("updated cardPile");
+                renderLastPlayed(server_data.cardPile[0]);
+            }
+            if (server_data.end_round[0] === "true" && user.end_round === "false") { //if incoming data is diff then update
+                console.log("Round Ended");
+                endRound(server_data.end_round[1]);
             }
             user.cardPile = server_data.cardPile;
             scoreboard(server_data.dict_varData); // update displays of each players: handSize, stillIn, yourTurn, score
@@ -247,26 +257,28 @@ function playGame_keepUpdatingFromServer() { //called every timestep (some amoun
                 document.getElementById("cardDeck").innerHTML = user.cardsInDeck; //display num cards left in deck
             }
             updateChatList(server_data.chatList);
+            console.log("end_round: " + user.end_round);
             playGame_afterServerUpdate();
     });
 }
 
 //continuous functionality of client if its his turn or not
 function playGame_afterServerUpdate() { //called every second
-    if(user.gameOver[0] === "F") { //instead of using a while loop, use an interval
+    if(user.end_round === "false") { //instead of using a while loop, use an interval
+        console.log("GO!");
         //toggle display of action buttons if user is still in or not
         if (user.stillIn) {
             document.getElementById("foldButton").style.display = "none";
             document.getElementById("passButton").style.display = "none";
             document.getElementById("playButton").style.display = "none";
             document.getElementById("battleButton").style.display = "block";
-            document.getElementById("passButton").style.display = "none";
+            document.getElementById("nineButton").style.display = "none";
         } else {
             document.getElementById("foldButton").style.display = "none";
             document.getElementById("passButton").style.display = "none";
             document.getElementById("playButton").style.display = "none";
             document.getElementById("battleButton").style.display = "none";
-            document.getElementById("passButton").style.display = "none";
+            document.getElementById("nineButton").style.display = "none";
         }
         //begin users turn
         if (user.yourTurn) { //should be true, server should set this to true
@@ -293,6 +305,7 @@ function playGame_afterServerUpdate() { //called every second
                 document.getElementById("passButton").style.display = "none";
                 if (user.isDerby) {
                     document.getElementById("passButton").style.display = "block";
+                    document.getElementById("foldButton").style.display = "none";
                 }
                 //toggle display of action buttons during a Derby
                 let lastPlay = '';
@@ -379,11 +392,13 @@ function playGame_afterServerUpdate() { //called every second
                 document.getElementById("battleButton").style.display = "block";
             }
         }
-    } else { //game is over
+    } else if (user.gameOver[0] === "T") { //game is over
         clearInterval(keepUpdating); //stop client from querying server
         alert("GAME OVER! Winner: " + user.gameOver[1]);
+    } else {
+        console.log("round over, waiting...");
+        //waiting 10 seconds for peeps to see who won/how because round is over
     }
-    //using if statements not while statements so eveything waiting/ending related is in the else block
 }
 
 
@@ -981,12 +996,6 @@ function sendChatMessege(event, form) {
         chat_obj.msg = form.msg.value;
         let chat_JSON = JSON.stringify(chat_obj);
         document.getElementById("chat_form").msg.value = ""; //reset input box
-        //console.log( "1");
-        //console.log( document.getElementById("chat_form").value );
-        //console.log( "3");
-        //console.log( document.getElementById("chat_input").value );
-        //console.log( "4");
-        //once played, send data to server, only after your turn
         $.post('/chatRoom',
             {
                 user_data: chat_JSON
@@ -1028,4 +1037,41 @@ function updateChatList(lst) {
     } else {
         //they are same, no update needed.
     }
+}
+
+function endRound(winner) {
+    user.end_round = "true";
+    user.timerObj.endRound_timeout = setTimeout(newRound, 15000); //15 seconds
+    console.log("newRound timeout set");
+    document.getElementById("round_winner").innerHTML = winner + " is the round Champ.";
+    document.getElementById("round_winner").style.backgroundColor = "pink";
+    document.getElementById("round_title").style.backgroundColor = "pink";
+
+    document.getElementById("foldButton").style.display = "none";
+    document.getElementById("passButton").style.display = "none";
+    document.getElementById("playButton").style.display = "none";
+    document.getElementById("battleButton").style.display = "none";
+    document.getElementById("nineButton").style.display = "none";
+}
+
+function newRound() {
+    console.log("New Round method");
+    alert("New Round!");
+    document.getElementById("round_winner").innerHTML = "";
+    document.getElementById("round_title").style.backgroundColor = "#7F7C6A";
+    document.getElementById("round_winner").style.backgroundColor = "#7F7C6A";
+    user.isDerby_toServ = false;
+    resetCardPile(); //resets card pile because round ended and incoming card pile is empty so user pile should be too
+    setHand(); //can only refuel after a round is over.
+    let newRound_obj = {};
+    newRound_obj.roomID = roomID;
+    let newRound_JSON = JSON.stringify(newRound_obj);
+    $.post('/start_new_round',
+        {
+            user_data: newRound_JSON
+        },
+        function(data, status) {
+            user.end_round = "false";
+            console.log("Started New Round");
+    });
 }

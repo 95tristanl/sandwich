@@ -22,6 +22,13 @@
     border-radius: 8px;
 }
 
+#separator {
+    background-color: black;
+    width: 10px;
+    height: 50px;
+    border-radius: 8px;
+}
+
 /*
 #cardPile {
     background-color: gray;
@@ -115,11 +122,11 @@ p {
   border: none;
   border-radius: 20px;
   color: white;
-  padding: 16px 32px;
+  padding: 10px 20px;
   text-align: center;
   text-decoration: none;
   display: inline-block;
-  font-size: 16px;
+  font-size: 12px;
   margin: 4px 2px;
   -webkit-transition-duration: 0.4s; /* Safari */
   transition-duration: 0.4s;
@@ -129,7 +136,7 @@ p {
 #playButton, #startGameButton {
   background-color: white;
   color: black;
-  border: 8px solid limegreen;
+  border: 4px solid limegreen;
 }
 
 #playButton:hover, #startGameButton:hover {
@@ -140,7 +147,7 @@ p {
 #nineButton {
   background-color: white;
   color: black;
-  border: 8px solid blueviolet;
+  border: 4px solid blueviolet;
 }
 
 #nineButton:hover {
@@ -151,7 +158,7 @@ p {
 #passButton, #chat_botton {
   background-color: white;
   color: black;
-  border: 8px solid tomato;
+  border: 4px solid tomato;
 }
 
 #passButton:hover, #chat_botton:hover {
@@ -162,7 +169,7 @@ p {
 #foldButton {
   background-color: white;
   color: black;
-  border: 8px solid crimson;
+  border: 4px solid crimson;
 }
 
 #foldButton:hover {
@@ -172,7 +179,7 @@ p {
 #battleButton {
   background-color: white;
   color: black;
-  border: 8px solid deepskyblue;
+  border: 4px solid deepskyblue;
 }
 
 #battleButton:hover {
@@ -211,4 +218,19 @@ p {
     background-color: #7F7C6A;
     font-size: 35px;
     line-height: 45px;
+}
+
+#round_title {
+    background-color: #7F7C6A;
+    border-radius: 50px;
+    height: 60px;
+    padding-left: 20px;
+    padding-right: 20px;
+}
+
+#round_winner {
+    background-color: #7F7C6A;
+    line-height: 60px;
+    margin-left: 20px;
+    margin-right: 20px;
 }

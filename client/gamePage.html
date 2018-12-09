@@ -28,12 +28,6 @@
             </td>
             <td>
                 <div class="waitBoard">
-                    <p>Room Id:</p>
-                    <p id="p2"></p>
-                </div>
-            </td>
-            <td>
-                <div class="waitBoard">
                     <p>Capacity:</p>
                     <p id="p3"></p>
                 </div>
@@ -56,15 +50,10 @@
                     <p id="p6"></p>
                 </div>
             </td>
-        </tr>
-    </table>
-
-    <table id="peeps_T">
-        <tr id="peeps_R"></tr>
-    </table>
-
-    <table>
-        <tr>
+            <td>
+                <div class="info" id="separator">
+                </div>
+            </td>
             <td>
                 <div class="info" id="playType">Normal</div>
             </td>
@@ -89,7 +78,21 @@
         </tr>
     </table>
 
-    <div id="cardPile_title"><h1 id="cardPile_h">Card Pile:</h1></div>
+    <table id="peeps_T">
+        <tr id="peeps_R"></tr>
+    </table>
+
+    <table>
+        <tr>
+            <td>
+                <div id="cardPile_title"><h1 id="cardPile_h">Card Pile:</h1></div>
+            </td>
+            <td>
+                <div id="round_title"><h1 id="round_winner"></h1></div>
+            </td>
+        </tr>
+    </table>
+
     <div>
         <table id="cardPile_T">
             <tr id="cardPileRow"> </tr>
@@ -115,6 +118,8 @@
             </td>
         </tr>
     </div>
+
+    <h1>Your Hand:</h1>
 
     <table id="hand_T">
         <tr id="hand_R"></tr>

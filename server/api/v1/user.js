@@ -32,6 +32,7 @@ module.exports = app => {
                 higherIsBetter: true,
                 startGame: false,
                 gameOver: ["F", ""],
+                end_round: ["false", ""],
                 isBattle: false,
                 isDerby: false,
                 orderOfPlay: {meh: "poopy"}, //just init with a val that is never going to be used
@@ -180,7 +181,9 @@ module.exports = app => {
                     res.status(300).send({error: "No Schema Found!"});
                 } else {
                     try {
-                        console.log("cli to serv");
+                        console.log("client to serv");
+                        console.log(data.usersTurn);
+                        console.log(schema.dict_varData);
                         let battleOver = false;
                         let derbyOver = false;
                         let maybeWinner = ""; //won round
@@ -409,7 +412,8 @@ module.exports = app => {
                                 //reset everything for next round since round is over
                                 schema.isBattle = false;
                                 schema.isDerby = false;
-                                schema.cardPile = []; //reset cardPile
+                                schema.end_round = ["true", maybeWinner]; //send winner back to clientside and that round is over
+                                //dont do this here, want to see the last move clientside. schema.cardPile = []; //reset cardPile
                                 schema.battleStack_Players = [];
                                 schema.battleStack_Moves = [];
                                 for (let key in schema.dict_varData) { //put everyone back in
@@ -451,6 +455,7 @@ module.exports = app => {
                                     if (schema.dict_varData[next][1] === true) { //found next player who is still in
                                         schema.dict_varData[next][2] = true;
                                         schema.markModified(`dict_varData.${next}`);
+                                        console.log("NEXT: " + next);
                                         break;
                                     } else {
                                         next = schema.orderOfPlay[next]; //increment to next player
@@ -459,6 +464,8 @@ module.exports = app => {
                                 if (data.user === next) {
                                     console.log("SOMETHING IS WRONG");
                                 }
+                            } else {
+                                console.log("uhhh...");
                             }
                         } else {
                             //battle isn't over...
@@ -498,11 +505,37 @@ module.exports = app => {
                     server_obj.battleStack_Players = schema.battleStack_Players;
                     server_obj.isDerby = schema.isDerby;
                     server_obj.gameOver = schema.gameOver;
+                    server_obj.end_round = schema.end_round;
                     server_obj.chatList = schema.chatList;
                     let server_JSON = JSON.stringify(server_obj);
                     res.status(200).send({
                         server_data: server_JSON
                     });
+                }
+            }
+        });
+    });
+
+    //saves incoming msgs
+    app.post('/start_new_round', async(req, res) => {
+        let data = JSON.parse(req.body.user_data);
+        await app.models.Game.findOne({roomID: data.roomID}, async function (err, schema) {
+            if (err) {
+                console.log("Game Not Found!");
+                res.status(404).send({ error: 'Game Not Found!' });
+            } else {
+                if (schema === null) {
+                    console.log("No Schema Found!");
+                    res.status(300).send({error: "No Schema Found!"});
+                } else {
+                    try {
+                        console.log("RESETTING for NEW ROUND");
+                        schema.cardPile = []; //reset
+                        schema.end_round = ["false", ""]; //reset
+                        await schema.save();
+                    } catch (err) {
+                        res.status(404).send({ error: 'Could not save schema data!' });
+                    }
                 }
             }
         });
@@ -534,7 +567,6 @@ module.exports = app => {
             }
         });
     });
-
 };
 
 

@@ -26,6 +26,7 @@ let Game = new Schema({
     higherIsBetter: { type: Boolean, default: true },
     startGame: { type: Boolean, default: false },
     gameOver: [],
+    end_round: [],
     isBattle: { type: Boolean, default: false },
     isDerby: { type: Boolean, default: false },
     orderOfPlay: {},  //a dictionary, stores who plays after who, order of play
