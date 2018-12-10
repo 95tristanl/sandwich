@@ -533,6 +533,7 @@ module.exports = app => {
                         schema.cardPile = []; //reset
                         schema.end_round = ["false", ""]; //reset
                         await schema.save();
+                        res.status(200).send({});
                     } catch (err) {
                         res.status(404).send({ error: 'Could not save schema data!' });
                     }
