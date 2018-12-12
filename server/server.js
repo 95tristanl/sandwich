@@ -24,8 +24,8 @@ const setupServer = async () => {
     // Connect to MongoDB
     try {
         //await mongoose.connect("mongodb://localhost:27017/leveiltt");
-        await mongoose.connect("mongodb://localhost:32768/leveiltt", {useNewUrlParser: true});
-        console.log("MongoDB connected: mongodb://localhost:32768/leveiltt");
+        await mongoose.connect("mongodb://localhost:27017/leveiltt", {useNewUrlParser: true});
+        console.log("MongoDB connected: mongodb://localhost:27017/leveiltt");
     } catch (err) {
         console.log(err);
         process.exit(-1);
@@ -39,8 +39,8 @@ const setupServer = async () => {
     // Import our routes
     require("./api")(app);
 
-    server.listen(8080, () => {
-        console.log('Started on 8080');
+    server.listen(4000, () => {
+        console.log('Started on 4000');
     });
 
     /*
