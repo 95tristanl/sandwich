@@ -1088,3 +1088,26 @@ function newRound() {
             console.log("Started New Round");
     });
 }
+
+
+window.addEventListener('beforeunload', function (e) {
+    console.log("0- **        ** -0");
+    console.log("u:");
+    console.log(user.username);
+    console.log("l:");
+    console.log(user.lord);
+    console.log("- - -");
+    if (user.username === user.lord) { //only the lord leaving can delete the room schema
+        console.log("Deleting room schema and leaving.");
+        $.post('/deleteRoom',
+            {
+                roomID: roomID
+            },
+            function(data, status){
+                console.log("closed!");
+        });
+    } else {
+        console.log("minion left...");
+    }
+
+});

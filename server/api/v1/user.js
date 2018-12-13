@@ -561,10 +561,24 @@ module.exports = app => {
                         schema.chatList.unshift(data.user + " : " + data.msg);
 
                         await schema.save();
+                        res.status(200).send({});
                     } catch (err) {
                         res.status(404).send({ error: 'Could not save schema data!' });
                     }
                 }
+            }
+        });
+    });
+
+    //deletes mongo room schema after lord leaves room
+    app.post('/deleteRoom', async(req, res) => {
+        await app.models.Game.findOneAndRemove({roomID: req.body.roomID}, async function (err) {
+            if (err) {
+                console.log(err);
+                res.status(500).send({});
+            } else {
+                console.log("deleted : " + req.body.roomID);
+                res.status(200).send({});
             }
         });
     });
