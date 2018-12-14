@@ -243,7 +243,7 @@ function playGame_keepUpdatingFromServer() { //called every timestep (some amoun
                 console.log("updated cardPile");
                 renderLastPlayed(server_data.cardPile[0]);
             }
-            if (server_data.end_round[0] === "true" && user.end_round === "false") { //if incoming data is diff then update
+            if (server_data.end_round[0] === "true" && user.end_round === "false" && server_data.gameOver[0] !== "T") { //if incoming data is diff then update
                 console.log("Round Ended");
                 endRound(server_data.end_round[1]);
             }
@@ -251,14 +251,21 @@ function playGame_keepUpdatingFromServer() { //called every timestep (some amoun
             scoreboard(server_data.dict_varData); // update displays of each players: handSize, stillIn, yourTurn, score
             user.dict_varData = server_data.dict_varData;
             user.yourTurn = server_data.dict_varData[user.username][2]; //updates if its your turn
-            user.gameOver = server_data.gameOver;
             if (user.cardsInDeck !== server_data.cardsInDeck) {
                 user.cardsInDeck = server_data.cardsInDeck;
                 document.getElementById("cardDeck").innerHTML = user.cardsInDeck; //display num cards left in deck
             }
             updateChatList(server_data.chatList);
-            console.log("end_round: " + user.end_round);
-            playGame_afterServerUpdate();
+            //user.gameOver = server_data.gameOver;
+            if (server_data.gameOver[0] === "T") {
+                clearInterval(user.timerObj.keepUpdating);
+                alert("Game Over!");
+                document.getElementById("round_winner").innerHTML = server_data.gameOver[1] + " WON!!! To play again, exit and create another room.";
+                document.getElementById("round_winner").style.backgroundColor = "gold";
+                document.getElementById("round_title").style.backgroundColor = "gold";
+            } else {
+                playGame_afterServerUpdate();
+            }
     });
 }
 
@@ -266,7 +273,6 @@ function playGame_keepUpdatingFromServer() { //called every timestep (some amoun
 //continuous functionality of client if its his turn or not
 function playGame_afterServerUpdate() { //called every second
     if(user.end_round === "false") { //instead of using a while loop, use an interval
-        console.log("GO!");
         //toggle display of action buttons if user is still in or not
         if (user.stillIn) {
             document.getElementById("foldButton").style.display = "none";
@@ -392,8 +398,8 @@ function playGame_afterServerUpdate() { //called every second
             document.getElementById("nineButton").style.display = "none";
         }
     } else if (user.gameOver[0] === "T") { //game is over
-        clearInterval(keepUpdating); //stop client from querying server
-        alert("GAME OVER! Winner: " + user.gameOver[1]);
+        console.log("Game is over!");
+        //alert("GAME OVER! Winner: " + user.gameOver[1]);
     } else {
         console.log("round over, waiting...");
         //waiting 10 seconds for peeps to see who won/how because round is over
@@ -600,11 +606,12 @@ function pass() {
 
 //displays folded cards on pile, hill only happen/appear if user is still in and its not a Derby
 function fold() {
+    console.log("clicked fold");
+    user.playedMove_toServ = [user.cardSelectedStack_toServ, 'fold', user.username];
     //clearTimeout(user.timerObj.timeoutVar); //stop timer
     removeSelectedFromHand(""); //removes card from hand
-    user.playedMove_toServ = [user.cardSelectedStack_toServ, 'fold', user.username];
     resetSelected(); //remove cards from cardSelectedStack after action
-    user.stillIn = false; //out of round
+    //user.stillIn = false; //out of round
     user.hasPlayed = true;
 }
 
@@ -655,9 +662,10 @@ function autoPlay() {
     } else { //fold because its normal play
         let randomCardNum = Math.floor((Math.random() * user.hand.length));
         user.playedMove_toServ = [[user.hand[randomCardNum]], 'fold', user.username]; //if it chose a joker, joker will be set to a 2
+        console.log(user.hand[randomCardNum]);
         resetSelected_AUTO(); //remove cards from cardSelectedStack after action
         removeSelectedFromHand(randomCardNum); //removes div/img from hand display given hand index and removes card from hand array []
-        user.stillIn = false; //out of round
+        //user.stillIn = false; //out of round
     }
     user.hasPlayed = true;
     //alert('Auto Played. You ran out of time.');
@@ -675,18 +683,18 @@ function setHand() {
         let td_ = document.createElement("td");
         let div_ = document.createElement("div");
         div_.style.backgroundColor = "white";
-        div_.style.width = "90px";
-        div_.style.height = "150px";
+        //div_.style.width = "75px"; //90
+        //div_.style.height = "110px"; //150
         div_.style.color = "white";
         div_.style.textAlign = "center";
         div_.style.verticalAlign = "middle";
         div_.style.lineHeight = "10px";
         let card_IMG = document.createElement("IMG");
         card_IMG.setAttribute("src", `/images/${user.hand[j]}.png`);
-        card_IMG.setAttribute("width", "80");
-        card_IMG.setAttribute("height", "120");
+        card_IMG.setAttribute("width", "65"); //80
+        card_IMG.setAttribute("height", "92"); //120
         card_IMG.style.padding = "0px 0px 0px 0px";
-        card_IMG.style.margin = "10px 0px 0px 0px";
+        card_IMG.style.margin = "5px 5px 5px 5px";
         card_IMG.id = `hand_${j}_${user.hand[j]}`;
         div_.id = `div_hand_${j}_${user.hand[j]}`;
         card_IMG.addEventListener("click", function(){cardsSelected(card_IMG.id, "")} );
@@ -866,8 +874,8 @@ function renderLastPlayed(last) {
         for(let j = 0; j < last[0].length; j++) {
             let card_IMG = document.createElement("IMG");
             card_IMG.setAttribute("src", `/images/${ last[0][j] }.png`);
-            card_IMG.setAttribute("width", "80");
-            card_IMG.setAttribute("height", "120");
+            card_IMG.setAttribute("width", "65"); //80
+            card_IMG.setAttribute("height", "92"); //120
             div_.appendChild(card_IMG);
         }
         let pileRow = document.getElementById("cardPileRow");
@@ -898,8 +906,8 @@ function renderLastPlayed(last) {
         div_.style.lineHeight = "20px";
         let card_IMG = document.createElement("IMG");
         card_IMG.setAttribute("src", `/images/${wcard}`);
-        card_IMG.setAttribute("width", "80");
-        card_IMG.setAttribute("height", "120");
+        card_IMG.setAttribute("width", "65"); //80
+        card_IMG.setAttribute("height", "92"); //120
         let pileRow = document.getElementById("cardPileRow");
         td_.appendChild(div_);
         div_.appendChild(card_IMG);
@@ -929,8 +937,8 @@ function renderLastPlayed(last) {
         for(let j = 0; j < last[0].length; j++) {
             let card_IMG = document.createElement("IMG");
             card_IMG.setAttribute("src", `/images/fold.png`);
-            card_IMG.setAttribute("width", "80");
-            card_IMG.setAttribute("height", "120");
+            card_IMG.setAttribute("width", "65"); //80
+            card_IMG.setAttribute("height", "92"); //120
             div_.appendChild(card_IMG);
         }
         let pileRow = document.getElementById("cardPileRow");
@@ -977,8 +985,8 @@ function renderLastPlayed(last) {
             for(let j = 0; j < last[0][i][0].length; j++) { //if multiple cards were played by a single player
                 let card_IMG = document.createElement("IMG");
                 card_IMG.setAttribute("src", `/images/${ last[0][i][0][j] }.png`);
-                card_IMG.setAttribute("width", "80");
-                card_IMG.setAttribute("height", "120");
+                card_IMG.setAttribute("width", "65"); //80
+                card_IMG.setAttribute("height", "92"); //120
                 div_.appendChild(card_IMG);
             }
             let p = document.createElement('P');
@@ -1089,14 +1097,8 @@ function newRound() {
     });
 }
 
-
+//if lord leaves room, deletes room schema on mongodb
 window.addEventListener('beforeunload', function (e) {
-    console.log("0- **        ** -0");
-    console.log("u:");
-    console.log(user.username);
-    console.log("l:");
-    console.log(user.lord);
-    console.log("- - -");
     if (user.username === user.lord) { //only the lord leaving can delete the room schema
         console.log("Deleting room schema and leaving.");
         $.post('/deleteRoom',
@@ -1104,7 +1106,7 @@ window.addEventListener('beforeunload', function (e) {
                 roomID: roomID
             },
             function(data, status){
-                console.log("closed!");
+                console.log("Deleted!");
         });
     } else {
         console.log("minion left...");

@@ -4,10 +4,9 @@ function tmp() {
     let a = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k"];
     a.splice(10, 1);
 
-    let timerObj = {};
-
-    timerObj.name = "peop";
-    console.log(timerObj.name);
+    for (let key in a) {
+        console.log(a[key]);
+    }
 
 }
 

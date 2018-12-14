@@ -291,27 +291,35 @@ module.exports = app => {
                         } else { //NOT A BATTLE, normal / Derby , one person plays at a time
                             if (schema.isDerby) {
                                 if (data.usersMove[1] === "play") {
-                                    schema.derbyLastPlay = data.usersMove[2]; //keep track of who "played" last, not "passed", never need to reset this value
+                                    //schema.derbyLastPlay = data.usersMove[2]; //keep track of who "played" last, not "passed", never need to reset this value
+                                    schema.derbyLastPlay = data.user;
                                     schema.cardPile.unshift(data.usersMove);
                                 } else {
                                     //player passed
                                 }
+
                                 maybeWinner = schema.derbyLastPlay; //no matter what asign a tmp winner, but if round isn't over, does not matter
-                                let next = schema.orderOfPlay[data.user];
                                 let aFlag = true;
-                                while (data.user !== next) { //went in a circle so exit loop, next person should have been found
-                                    if (schema.dict_varData[next][1] === true) { //found next player who is still in
-                                        //if derby and next person up is also the last person who "played" and not "passed", round is over
-                                        if (schema.derbyLastPlay === next) {
-                                            break; //derbyOver = true, ends round by breaking before looping to person who is still in but passed
-                                        } else { //found next player who is still in who did not play the last played hand
-                                            aFlag = false;
-                                            schema.dict_varData[next][2] = true;
-                                            schema.markModified(`dict_varData.${next}`);
-                                            break;
+
+                                if (data.usersMove[1] === "play" && data.usersMove[0][0].substr(0,2) === "15") { //Ace was played so end round
+                                    //ace so ends round, skips over check below
+                                    console.log("Multi ACE!");
+                                } else {
+                                    let next = schema.orderOfPlay[data.user];
+                                    while (data.user !== next) { //went in a circle so exit loop, next person should have been found
+                                        if (schema.dict_varData[next][1] === true) { //found next player who is still in
+                                            //if derby and next person up is also the last person who "played" and not "passed", round is over
+                                            if (schema.derbyLastPlay === next) {
+                                                break; //derbyOver = true, ends round by breaking before looping to person who is still in but passed
+                                            } else { //found next player who is still in who did not play the last played hand
+                                                aFlag = false;
+                                                schema.dict_varData[next][2] = true;
+                                                schema.markModified(`dict_varData.${next}`);
+                                                break;
+                                            }
+                                        } else {
+                                            next = schema.orderOfPlay[next]; //increment to next player
                                         }
-                                    } else {
-                                        next = schema.orderOfPlay[next]; //increment to next player
                                     }
                                 }
                                 derbyOver = aFlag; //this ends the round if true
@@ -329,6 +337,7 @@ module.exports = app => {
                                 } else if (data.usersMove[1] === "fold") {
                                     schema.dict_varData[data.user][1] = false; //that person folded so is no longer in round
                                     schema.markModified(`dict_varData.${data.user}`);
+                                    console.log("folded");
                                 }
 
                                 if (isAce) { //ace was played outside of a battle
@@ -370,44 +379,35 @@ module.exports = app => {
                                 schema.markModified(`dict_varData.${maybeWinner}`); //save
                                 //refuel?
                                 console.log("refuel?");
-                                let refuledStack = [];
+                                let refuelStack = [];
                                 let doneCounter = 0;
+                                for (let key in schema.dict_hands) {
+                                    if (schema.dict_hands[key].length < schema.refuelNum ) {
+                                        refuelStack.push(key); //if player is below limit, add him to stack so he can get refueled
+                                        console.log(key + " is refueling");
+                                    }
+                                }
                                 do { //continuous goes around and deals 1 card at a time so cards are dealt evenly amoung players needing refill
                                     doneCounter = 0;
-                                    for (let key in schema.dict_hands) {
-                                        if (schema.dict_hands[key].length < schema.refuelNum && schema.deck.length > 0) { //refuel
-                                            schema.dict_hands[key].push(schema.deck[ schema.deck.length - 1 ]);
-                                            schema.markModified(`dict_hands.${key}`); //save
+                                    for (let i = 0; i < refuelStack.length; i++) {
+                                        console.log(i);
+                                        if (schema.dict_hands[refuelStack[i]].length < schema.handSize && schema.deck.length > 0) { //refuel
+                                            schema.dict_hands[refuelStack[i]].push(schema.deck[ schema.deck.length - 1 ]);
+                                            schema.markModified(`dict_hands.${refuelStack[i]}`); //save
+                                            console.log("ref: " + refuelStack[i] + " : " + schema.deck[ schema.deck.length - 1 ]);
                                             schema.deck.pop(); //get rid of last card in deck that was just dealt to players hand
-                                            if (refuledStack.indexOf(key) < 0) { //if player needed to refule and not already in stack, add them
-                                                refuledStack.push(key);
-                                            }
                                         } else {
                                             doneCounter = doneCounter + 1;
+                                            console.log("done refueling a player");
                                         }
                                     }
-                                } while (doneCounter < schema.gameSize)
-                                /*
-                                for (let key in schema.dict_hands) {
-                                    if (schema.dict_hands[key].length <= schema.refuelNum) { //refuel
-                                        while (schema.dict_hands[key].length <= schema.handSize) { //persons hand size is
-                                            schema.dict_hands[key].push(schema.deck[ schema.deck.length - 1 ]);
-                                            schema.markModified(`dict_hands.${key}`); //save
-                                            schema.deck.pop(); //get rid of last card in deck that was just dealt to players hand
-                                        }
-                                    }
-                                }
-                                //sort hand now that new cards were added
-                                for (let akey in schema.dict_hands) {
-                                    schema.dict_hands[akey] = sortHand(schema.dict_hands[akey])
-                                    schema.markModified(`dict_hands.${akey}`);
-                                }
-                                */
-                                //only sort hands of player/s that needed to refule
-                                console.log("refuledStack.length " + refuledStack.length);
-                                for (let i = 0; i < refuledStack.length; i++) {
-                                    schema.dict_hands[refuledStack[i]] = sortHand(schema.dict_hands[refuledStack[i]])
-                                    schema.markModified(`dict_hands.${refuledStack[i]}`);
+                                    console.log("doneCounter : " + doneCounter);
+                                } while (doneCounter < refuelStack.length)
+                                //only sort hands of player/s that needed to refuel
+                                console.log("refuelStack.length " + refuelStack.length);
+                                for (let i = 0; i < refuelStack.length; i++) {
+                                    schema.dict_hands[refuelStack[i]] = sortHand(schema.dict_hands[refuelStack[i]])
+                                    schema.markModified(`dict_hands.${refuelStack[i]}`);
                                 }
                                 //reset everything for next round since round is over
                                 schema.isBattle = false;
@@ -421,19 +421,25 @@ module.exports = app => {
                                     schema.dict_varData[key][2] = false; //set yourTurn to false for everyone
                                     schema.markModified(`dict_varData.${key}`); //save
                                 }
+
+                                console.log(schema.end_round);
+
                                 //gameOver?
                                 if (schema.deck.length === 0) { //even if no cards left in deck, play until only 1 or 0 people left with cards
+                                    console.log("no cards left in deck");
                                     let guysWithHands_count = 0;
                                     for (let key in schema.dict_hands) {
                                         if (schema.dict_hands[key].length > 0) { //if this person is still in increase count
                                             guysWithHands_count = guysWithHands_count + 1;
                                         }
                                         if (guysWithHands_count > 1) { //speeds up look-up loop
+                                            console.log("still > 1 guys with cards in their hands");
                                             break; //Game is NOT over
                                         }
                                     }
                                     if (guysWithHands_count <= 1) { //game is over
                                         let winner = [schema.lord]; //could be a tie
+                                        console.log("game is over" );
                                         for (let keyy in schema.dict_varData) {
                                             if (schema.dict_varData[keyy][3] > schema.dict_varData[winner[0]][3]) {
                                                 winner = [keyy]; //better than the person or people tied
@@ -442,8 +448,13 @@ module.exports = app => {
                                             }
                                         }
                                         schema.gameOver = ["T", winner];
+                                        console.log("winner : ");
+                                        console.log(winner);
                                     }
-                                } else { //game is not over but round is, maybeWinner won round so he starts next round
+                                }
+
+                                //Game not over...
+                                if (schema.gameOver[0] === "F") { //game is not over but round is, maybeWinner won round so he starts next round
                                     schema.dict_varData[maybeWinner][2] = true;
                                     console.log(maybeWinner + " won");
                                 }
@@ -471,6 +482,8 @@ module.exports = app => {
                             //battle isn't over...
                             //wait for all players in battle to play their moves
                         }
+                        console.log("SAVING schema");
+                        console.log(schema.dict_varData);
                         await schema.save();
                         res.status(200).send({});
                     } catch (err) {
@@ -590,9 +603,14 @@ function makeDeck(numDecks) {
     let newDeck = [];
     let sumDeck = [];
     //14 is for the 2 jokers
+    /*
     let deck = ['2c', '2d', '2h', '2s', '3c', '3d', '3h', '3s', '4c', '4d', '4h', '4s', '5c', '5d', '5h',
     '5s', '6c', '6d', '6h', '6s', '7c', '7d', '7h', '7s', '8c', '8d', '8h', '8s', '9c', '9d', '9h', '9s', '10c', '10d', '10h',
-    '10s', '11c', '11d', '11h', '11s', '12c', '12d', '12h', '12s', '13c', '13d', '13h', '13s', '14j', '14j', '15c', '15d', '15h', '15s', ];
+    '10s', '11c', '11d', '11h', '11s', '12c', '12d', '12h', '12s', '13c', '13d', '13h', '13s', '14j', '14j', '15c', '15d', '15h', '15s'];
+    */
+
+    //length = 18
+    let deck = ['11c', '11d', '11h', '11s', '12c', '12d', '12h', '12s', '13c', '13d', '13h', '13s', '14j', '14j', '15c', '15d', '15h', '15s'];
 
     for (let i = 0; i < numDecks; i++) {
         sumDeck = sumDeck.concat(deck);
