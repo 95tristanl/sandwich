@@ -228,17 +228,6 @@ function playGame_keepUpdatingFromServer() { //called every timestep (some amoun
             user.isDerby = server_data.isDerby;
             user.battleStack_Players = server_data.battleStack_Players;
             user.hand = server_data.hand; //update before setHand() below
-            /*
-            if (user.cardPile.length < server_data.cardPile.length) { //if incoming data is diff then update
-                renderLastPlayed(server_data.cardPile[0]);
-                //renderCardPile();
-            } else if (server_data.cardPile.length === 0 && user.cardPile.length !== 0) {
-                user.isDerby_toServ = false;
-                resetCardPile(); //resets card pile because round ended and incoming card pile is empty so user pile should be too
-                alert("New Round!");
-                setHand(); //can only refuel after a round is over.
-            }
-            */
             if (user.cardPile.length < server_data.cardPile.length) {
                 console.log("updated cardPile");
                 renderLastPlayed(server_data.cardPile[0]);
@@ -1007,7 +996,7 @@ function renderLastPlayed(last) {
     }
 }
 
-
+//when user sends a msg
 function sendChatMessege(event, form) {
     event.preventDefault();
     if (form.msg.value !== "") {
@@ -1026,6 +1015,8 @@ function sendChatMessege(event, form) {
     }
 }
 
+//updates client chat list with incoming msgs
+//incoming chat "lst" is only 10 msgs long
 function updateChatList(lst) {
     if (user.chatList.length === 0 && lst.length > 0) { //just creating chat list
         user.chatList = lst;
@@ -1036,15 +1027,14 @@ function updateChatList(lst) {
             x.className = "chat_li";
             chat_lst.appendChild(x);
         }
-    } else if (user.chatList[0] !== lst[0]) { //list already exists/already msgs
-        let pos = 10; //max msgs/indexes in chat lst
+    } else if (user.chatList[0] !== lst[0]) { //client list already exists and needs to be updated (doesn't match servers list)
+        let pos = 10; //max msgs allowed in chat lst
         for (let i = 1; i < lst.length; i++) {
-            if (user.chatList[0] === lst[i]) { //find number of msgs to update/queue client side
-                pos = i;
+            if (user.chatList[0] === lst[i]) { //find where lists match
+                pos = i; //number of msgs to update/queue client side
                 break;
             }
         }
-        user.chatList = lst;
         let chat_lst = document.getElementById("chat_list");
         for (let j = pos - 1; j >= 0; j--) {
             let x = document.createElement("LI");
@@ -1055,6 +1045,7 @@ function updateChatList(lst) {
                 chat_lst.childNodes.item(10).remove();
             }
         }
+        user.chatList = lst;
     } else {
         //they are same, no update needed.
     }
@@ -1097,10 +1088,10 @@ function newRound() {
     });
 }
 
-//if lord leaves room, deletes room schema on mongodb
+//"Shutdown/deletion of room" : if lord leaves room, deletes room schema on mongodb
 window.addEventListener('beforeunload', function (e) {
     if (user.username === user.lord) { //only the lord leaving can delete the room schema
-        console.log("Deleting room schema and leaving.");
+        //console.log("Deleting room schema and leaving.");
         $.post('/deleteRoom',
             {
                 roomID: roomID
@@ -1109,7 +1100,6 @@ window.addEventListener('beforeunload', function (e) {
                 console.log("Deleted!");
         });
     } else {
-        console.log("minion left...");
+        //console.log("minion left...");
     }
-
 });

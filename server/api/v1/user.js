@@ -568,11 +568,10 @@ module.exports = app => {
                     res.status(300).send({error: "No Schema Found!"});
                 } else {
                     try {
-                        if (schema.chatList.length > 10) {
-                            schema.splice(10, 1); //remove last / 11th element
-                        }
                         schema.chatList.unshift(data.user + " : " + data.msg);
-
+                        if (schema.chatList.length > 10) {
+                            schema.chatList.splice(10, 1); //remove last / 11th element
+                        }
                         await schema.save();
                         res.status(200).send({});
                     } catch (err) {

@@ -24,8 +24,8 @@ const setupServer = async () => {
     // Connect to MongoDB
     try {
         //await mongoose.connect("mongodb://localhost:27017/leveiltt");
-        await mongoose.connect("mongodb://localhost:32772/leveiltt", {useNewUrlParser: true});
-        console.log("MongoDB connected: mongodb://localhost:32772/leveiltt");
+        await mongoose.connect("mongodb://localhost:32768/leveiltt", {useNewUrlParser: true});
+        console.log("MongoDB connected: mongodb://localhost:32768/leveiltt");
     } catch (err) {
         console.log(err);
         process.exit(-1);
