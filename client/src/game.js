@@ -166,6 +166,11 @@ function scoreboard(server_dict_varData) {
     for (let key in user.dict_varData) {
         //update paly typle box
         let pt_div = document.getElementById("playType");
+        console.log("SB inner:: " + pt_div.innerHTML);
+        console.log("is B :: " + user.isBattle);
+        console.log("is D :: " + user.isDerby);
+        console.log(user.dict_varData);
+        console.log(server_dict_varData);
         if (!user.isBattle && !user.isDerby && pt_div.style.backgroundColor !== "limegreen") { //normal
             pt_div.style.backgroundColor = "limegreen";
             pt_div.innerHTML = "Normal";
@@ -199,8 +204,8 @@ function scoreboard(server_dict_varData) {
             }
         }
         //cards in hand and score update
-        if (server_dict_varData[key][0] !== user.dict_varData[key][0]
-            || server_dict_varData[key][3] !== user.dict_varData[key][3] ) {
+        if (server_dict_varData[key][0] !== user.dict_varData[key][0] || server_dict_varData[key][3] !== user.dict_varData[key][3] ) {
+            console.log("UPDATE cards score");
             let div_ = document.getElementById("sb_" + key);
             div_.innerHTML = key + "<br />" + "Cards: " + server_dict_varData[key][0] + "<br />" + "score: " + server_dict_varData[key][3]; //players name and score
         }
@@ -651,7 +656,6 @@ function autoPlay() {
     } else { //fold because its normal play
         let randomCardNum = Math.floor((Math.random() * user.hand.length));
         user.playedMove_toServ = [[user.hand[randomCardNum]], 'fold', user.username]; //if it chose a joker, joker will be set to a 2
-        console.log(user.hand[randomCardNum]);
         resetSelected_AUTO(); //remove cards from cardSelectedStack after action
         removeSelectedFromHand(randomCardNum); //removes div/img from hand display given hand index and removes card from hand array []
         //user.stillIn = false; //out of round
@@ -684,8 +688,8 @@ function setHand() {
         card_IMG.setAttribute("height", "92"); //120
         card_IMG.style.padding = "0px 0px 0px 0px";
         card_IMG.style.margin = "5px 5px 5px 5px";
-        card_IMG.id = `hand_${j}_${user.hand[j]}`;
-        div_.id = `div_hand_${j}_${user.hand[j]}`;
+        card_IMG.id = `hand_${j}_${user.hand[j]}`; // want to add "j" num into id because with multiple...
+        div_.id = `div_hand_${j}_${user.hand[j]}`; // decks could have same cards in hand = same ids = no no
         card_IMG.addEventListener("click", function(){cardsSelected(card_IMG.id, "")} );
         document.getElementById("hand_R").appendChild(td_).appendChild(div_).appendChild(card_IMG);
         if (user.hand[j] === "14j") {
@@ -693,6 +697,7 @@ function setHand() {
         }
     }
 }
+
 
 function createMenu(div_) {
     let arr = [
@@ -703,7 +708,7 @@ function createMenu(div_) {
             {val : "6s", text: '6'},
             {val : "7h", text: '7'},
             {val : "8d", text: '8'},
-            {val : "9j", text: '9'}, //9c
+            {val : "9c", text: '9'}, //9c
             {val : "10s", text: '10'},
             {val : "11h", text: 'Jack'},
             {val : "12d", text: 'Queen'},
@@ -717,25 +722,28 @@ function createMenu(div_) {
         });
 
         sel.on("change", function(event) {
-            let option_text = $(this).children("option:selected").text();
-            let option_val = $(this).children("option:selected").val();
+            console.log("CHANGE ::");
+            //let option_text = $(this).children("option:selected").text();
             //the whole point here is that we are re-assigning the div and img
-            //ids to new ids so they represent a specific val instead of wild
+            //ids to new ids so they represent a specific val/card instead of wild
+            let option_val = $(this).children("option:selected").val();
             let img_id = $(this).parent().children(0).get(0).id;
             let l = img_id.split("_")[2].length;
-            let new_id = img_id.substr(0, img_id.length - l) + option_val; //grabs everything but orig hand val, and concats new val
+            console.log(l);
+            console.log( img_id.substr(0, img_id.length - l) );
+            let new_id = img_id.substr(0, img_id.length - l) + "_" + option_val;
+            console.log("before : " + img_id);
             document.getElementById(img_id).id = new_id; //set divs id to the new id so it
             document.getElementById( "div_" + img_id ).id = "div_" + new_id; //set divs id to the new id so it
-            user.hand[img_id.split("_")[1]] = option_val; //update the users hand array at index of joker to new option value
+            console.log("option_val : " + option_val);
+            console.log("after : " + new_id);
+            console.log("- - - ... done CHANGE");
             cardsSelected(new_id, img_id);
         });
         //set div and img ids to have val "2s" as is in menu initially
-        let img_ID = div_.id.substr(4); //gets img id, excludes: "div_"
-        let l = img_ID.split("_")[2].length;
-        let new_id = img_ID.substr(0, img_ID.length - l) + "2s"; //grabs everything but orig hand val, and concats new val
-        document.getElementById(img_ID).id = new_id; //set img id to the new id so it
-        document.getElementById(div_.id).id = "div_" + new_id; //set divs id to the new id so it
-        user.hand[img_ID.split("_")[1]] = "2s"; //update the users hand array at index of joker to new option value
+        let img_ID = div_.id.substr(4); //gets img id, does not have "div_" in it
+        document.getElementById(img_ID).id = img_ID + "_2s"; //set img id to the new id so it
+        document.getElementById(div_.id).id = div_.id + "_2s"; //set divs id to the new id so it
 }
 
 
@@ -745,16 +753,19 @@ function createMenu(div_) {
 //params: clicked-on/new id, old wild id   :  the second param is only a string if
 //the card is a wild card and the client changes the menu option while the card
 //is selected, so have to change the id instead of a push or pop
+// ex div joker id: div_hand_12_14j_2s
 function cardsSelected(img_ID, old_ID){
+    console.log("CSS BEFORE: ");
+    console.log(user.cardSelectedStack);
+    console.log(user.cardSelectedStack_toServ);
     document.getElementById("nineButton").style.display = "none";
     let div_ID = 'div_' + img_ID;
     let img = img_ID.split("_")[2]; //grabs just the img
-    let tmp_old_img = old_ID.split("_")[2]; //grabs just the img
     let d = document.getElementById(div_ID);
     let pos = user.cardSelectedStack.indexOf(div_ID);
     if (old_ID === "") { //a direct string change is not needed, push or pop is needed
         if ( pos >= 0 ) { //if the id is in the array, its already selected, so UNhighlight it
-            if (div_ID.indexOf('9', 10) >= 0 && user.cardSelectedStack.length === 1 ) { //selected card was a 9, 10 is for '9' past 10 index
+            if (img.indexOf('9', 0) >= 0 && user.cardSelectedStack.length === 1 ) { //selected card was a 9 not from joker
                 document.getElementById("nineButton").style.display = "none";
                 console.log("9 wild gone...");
             }
@@ -762,38 +773,51 @@ function cardsSelected(img_ID, old_ID){
             user.cardSelectedStack.splice(pos, 1);
             user.cardSelectedStack_toServ.splice(pos, 1); //has same functionality as cardSelectedStack
         } else { //if its not in the array then Highlight the card and add it to the array
-            if (div_ID.indexOf('9', 10) >= 0 && user.cardSelectedStack.length === 0 && img !== "9j") { //only selected card is a 9 (not from joker)
+            if (img.indexOf('9', 0) >= 0 && user.cardSelectedStack.length === 0) { //only selected card is a 9 not from joker
                 document.getElementById("nineButton").style.display = "block";
                 console.log("9 wild IN");
             }
+            console.log(img);
+            if (img === "14j") {
+                console.log("JOKER!");
+                user.cardSelectedStack_toServ.push(div_ID.split("_")[4]); //img from joker
+            } else {
+                console.log("not a JOKER");
+                user.cardSelectedStack_toServ.push(img); //non joker img
+            }
             d.style.backgroundColor = "blue";
             user.cardSelectedStack.push(div_ID);
-            if (img === "9j") {
-                user.cardSelectedStack_toServ.push("9c");
-            } else {
-                user.cardSelectedStack_toServ.push(img);
-            }
         }
         if (user.cardSelectedStack.length > 1) {
             document.getElementById("nineButton").style.display = "none";
             console.log("9 wild gone...");
-        } else if (user.cardSelectedStack.length === 1 && user.cardSelectedStack[0].indexOf('9', 10) >= 0 && user.cardSelectedStack[0].indexOf('9j', 10) < 0) { //only selected card is a 9 (not from joker)
+        } else if (user.cardSelectedStack.length === 1 && user.cardSelectedStack[0].split("_")[3].indexOf('9', 0) >= 0) {
+            //only selected card is a 9 (not from joker)
             document.getElementById("nineButton").style.display = "block";
             console.log("9 wild IN");
         }
-    } else { //find and change the old id to the new id : joker menu is changed while its selected
-        pos = user.cardSelectedStack.indexOf("div_" + old_ID);
-        user.cardSelectedStack[pos] = div_ID;
-        if (img === "9j") {
-            user.cardSelectedStack_toServ[pos] = "9c";
-        } else {
-            user.cardSelectedStack_toServ[pos] = img;
+    } else { //here bc card is joker options change. Find and change the old joker id to new id
+        pos = user.cardSelectedStack.indexOf("div_" + old_ID); //pos of old joker id
+        if (pos >= 0) {
+            user.cardSelectedStack[pos] = div_ID; //replace with new id
+            user.cardSelectedStack_toServ[pos] = div_ID.split("_")[4]; //new joker value
         }
     }
-    console.log("card sel stack");
+    console.log("CSS After: ");
     console.log(user.cardSelectedStack);
+    console.log(user.cardSelectedStack_toServ);
+    console.log("- - - ...");
 }
 
+
+//resets when auto play occurs because no selected cards where necesarily played, a rand card is chosen to fold
+function resetSelected_AUTO() {
+    for (let i = 0; i < user.cardSelectedStack.length; i++) {
+        document.getElementById( user.cardSelectedStack[i] ).style.backgroundColor = "white";
+    }
+    user.cardSelectedStack = []; //reset
+    user.cardSelectedStack_toServ = []; //reset
+}
 
 //sets the background color of all selected cards back to white
 //clears the user.cardSelectedStack back to empty []
@@ -806,31 +830,28 @@ function removeSelectedFromHand(ind) {
             document.getElementById(user.cardSelectedStack[i]).remove(); //removes card from hand
         }
     } else { //called by auto_play
-        document.getElementById( "div_hand_" + ind + "_" + user.hand[ind]).remove();
+        console.log("AUTO REM");
+        console.log(user.hand_toServ);
+        console.log(user.hand);
+        console.log(user.hand_toServ);
+        let id = document.getElementById("hand_R").children[ind].children[0].id; //div id
+        document.getElementById("hand_R").children[ind].children[0].remove();
         user.hand.splice(ind, 1); //removes card from hand array
+        user.hand_toServ = user.hand.slice(0); //dont touch the hand, make a copy and send that to serv, protect against race conditions
+        console.log(user.hand);
+        console.log(user.hand_toServ);
     }
+    console.log("- - - ... end");
 }
 
 
 //updates user card hand array given what they played
 function resetSelected() {
-    let tmp = user.hand;
-    user.hand_toServ = tmp; //dont touch the hand, make a copy and send that to serv, protect against race conditions
+    user.hand_toServ = user.hand.slice(0); //dont touch the hand, make a copy and send that to serv, protect against race conditions
     for (let i = 0; i < user.cardSelectedStack.length; i++) {
         user.hand_toServ.splice( user.hand_toServ.indexOf(user.cardSelectedStack[i].split("_")[3]), 1); //remove card from users hand, [2] grabs the index in hand array
     }
-    user.hand = user.hand_toServ; //gets rid of cards from hand / update hand
-    user.cardSelectedStack = []; //reset
-    user.cardSelectedStack_toServ = []; //reset
-}
-
-//resets when auto play occurs because no selected cards where necesarily played, a rand card is chosen to fold
-function resetSelected_AUTO() {
-    let tmp = user.hand;
-    user.hand_toServ = tmp; //dont touch the hand, make a copy and send that to serv, protect against race conditions
-    for (let i = 0; i < user.cardSelectedStack.length; i++) {
-        document.getElementById( user.cardSelectedStack[i] ).style.backgroundColor = "white";
-    }
+    user.hand = user.hand_toServ.slice(0); //gets rid of cards from hand / update hand
     user.cardSelectedStack = []; //reset
     user.cardSelectedStack_toServ = []; //reset
 }
@@ -1089,7 +1110,7 @@ function newRound() {
 }
 
 //"Shutdown/deletion of room" : if lord leaves room, deletes room schema on mongodb
-window.addEventListener('beforeunload', function (e) {
+window.addEventListener('beforeunload', function(e) {
     if (user.username === user.lord) { //only the lord leaving can delete the room schema
         //console.log("Deleting room schema and leaving.");
         $.post('/deleteRoom',

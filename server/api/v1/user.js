@@ -382,7 +382,7 @@ module.exports = app => {
                                 let refuelStack = [];
                                 let doneCounter = 0;
                                 for (let key in schema.dict_hands) {
-                                    if (schema.dict_hands[key].length < schema.refuelNum ) {
+                                    if (schema.dict_hands[key].length <= schema.refuelNum ) {
                                         refuelStack.push(key); //if player is below limit, add him to stack so he can get refueled
                                         console.log(key + " is refueling");
                                     }
@@ -443,7 +443,7 @@ module.exports = app => {
                                         for (let keyy in schema.dict_varData) {
                                             if (schema.dict_varData[keyy][3] > schema.dict_varData[winner[0]][3]) {
                                                 winner = [keyy]; //better than the person or people tied
-                                            } else if (schema.dict_varData[keyy][3] === schema.dict_varData[winner][3]) {
+                                            } else if (schema.dict_varData[keyy][3] === schema.dict_varData[winner[0]][3]) {
                                                 winner.push(keyy); //so far is a tie
                                             }
                                         }
