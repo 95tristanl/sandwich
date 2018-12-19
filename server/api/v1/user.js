@@ -394,6 +394,8 @@ module.exports = app => {
                                         if (schema.dict_hands[refuelStack[i]].length < schema.handSize && schema.deck.length > 0) { //refuel
                                             schema.dict_hands[refuelStack[i]].push(schema.deck[ schema.deck.length - 1 ]);
                                             schema.markModified(`dict_hands.${refuelStack[i]}`); //save
+                                            schema.dict_varData[refuelStack[i]][0] = schema.dict_hands[refuelStack[i]].length; //update cards in hand in dict_varData
+                                            schema.markModified(`dict_dict_varData.${refuelStack[i]}`); //save
                                             console.log("ref: " + refuelStack[i] + " : " + schema.deck[ schema.deck.length - 1 ]);
                                             schema.deck.pop(); //get rid of last card in deck that was just dealt to players hand
                                         } else {

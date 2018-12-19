@@ -163,24 +163,24 @@ function startGame_justLord() {
 
 //displays each players handSize, stillIn, yourTurn, score
 function scoreboard(server_dict_varData) {
+    //update paly typle box
+    let pt_div = document.getElementById("playType");
+
+    if (!user.isBattle && !user.isDerby && pt_div.style.backgroundColor !== "limegreen") { //normal
+        pt_div.style.backgroundColor = "limegreen";
+        pt_div.innerHTML = "Normal";
+    } else if (user.isDerby && user.isBattle && pt_div.innerHTML !== "Derby<br />Battle!!!") {
+        pt_div.style.backgroundColor = "pink";
+        pt_div.innerHTML = "Derby" + "<br />" + "Battle!!!";
+    } else if (user.isBattle && !user.isDerby && pt_div.innerHTML !== "Battle!!") {
+        pt_div.style.backgroundColor = "deepskyblue";
+        pt_div.innerHTML = "Battle!!";
+    } else if (user.isDerby && !user.isBattle && pt_div.innerHTML !== "Derby!") {
+        pt_div.style.backgroundColor = "blueviolet";
+        pt_div.innerHTML = "Derby!";
+    }
+
     for (let key in user.dict_varData) {
-        //update paly typle box
-        let pt_div = document.getElementById("playType");
-        console.log("SB inner:: " + pt_div.innerHTML);
-        console.log("is B :: " + user.isBattle);
-        console.log("is D :: " + user.isDerby);
-        console.log(user.dict_varData);
-        console.log(server_dict_varData);
-        if (!user.isBattle && !user.isDerby && pt_div.style.backgroundColor !== "limegreen") { //normal
-            pt_div.style.backgroundColor = "limegreen";
-            pt_div.innerHTML = "Normal";
-        } else if (user.isBattle && pt_div.innerHTML !== "Battle!!") {
-            pt_div.style.backgroundColor = "deepskyblue";
-            pt_div.innerHTML = "Battle!!";
-        } else if (user.isDerby && pt_div.innerHTML !== "Derby!") {
-            pt_div.style.backgroundColor = "blueviolet";
-            pt_div.innerHTML = "Derby!";
-        }
         //still in update
         if (server_dict_varData[key][1] !== user.dict_varData[key][1]) {
             let div_ = document.getElementById("sb_" + key);
@@ -205,7 +205,6 @@ function scoreboard(server_dict_varData) {
         }
         //cards in hand and score update
         if (server_dict_varData[key][0] !== user.dict_varData[key][0] || server_dict_varData[key][3] !== user.dict_varData[key][3] ) {
-            console.log("UPDATE cards score");
             let div_ = document.getElementById("sb_" + key);
             div_.innerHTML = key + "<br />" + "Cards: " + server_dict_varData[key][0] + "<br />" + "score: " + server_dict_varData[key][3]; //players name and score
         }
@@ -234,11 +233,9 @@ function playGame_keepUpdatingFromServer() { //called every timestep (some amoun
             user.battleStack_Players = server_data.battleStack_Players;
             user.hand = server_data.hand; //update before setHand() below
             if (user.cardPile.length < server_data.cardPile.length) {
-                console.log("updated cardPile");
                 renderLastPlayed(server_data.cardPile[0]);
             }
             if (server_data.end_round[0] === "true" && user.end_round === "false" && server_data.gameOver[0] !== "T") { //if incoming data is diff then update
-                console.log("Round Ended");
                 endRound(server_data.end_round[1]);
             }
             user.cardPile = server_data.cardPile;
@@ -294,11 +291,7 @@ function playGame_afterServerUpdate() { //called every second
                     document.getElementById("playButton").style.display = "block";
                     document.getElementById("foldButton").style.display = "block";
                     document.getElementById("passButton").style.display = "none";
-                    //if (user.isDerby) {
-                    //    document.getElementById("passButton").style.display = "block";
-                    //    document.getElementById("foldButton").style.display = "none";
-                    //}
-                    //toggle display of action buttons during a Derby
+
                     let lastPlay = '';
                     for (let i = 0; i < user.cardPile.length; i++) {
                         if (user.cardPile[i][1] === 'play') { //the card(s) that the user must beat
@@ -333,7 +326,6 @@ function playGame_afterServerUpdate() { //called every second
                             divClock.style.backgroundColor = "red";
                             divClock.innerHTML = timeLeft;
                         } else if (timeLeft < 0) {
-                            console.log("- NEG ");
                             //clearTimeout(user.timerObj.timeoutVar); //stop timer
                             alert("Auto played, you ran out of time.");
                             divClock.style.backgroundColor = "white";
@@ -343,9 +335,7 @@ function playGame_afterServerUpdate() { //called every second
                         // - - - TIMER STUFF ***
 
                     } else { //played
-                        console.log("played!");
                         if (divClock.style.backgroundColor !== "white" || divClock.innerHTML !== 30) { // reset clock
-                            console.log("reset clock display");
                             divClock.style.backgroundColor = "white";
                             divClock.innerHTML = 30;
                         }
@@ -395,7 +385,6 @@ function playGame_afterServerUpdate() { //called every second
         console.log("Game is over!");
         //alert("GAME OVER! Winner: " + user.gameOver[1]);
     } else {
-        console.log("round over, waiting...");
         //waiting 10 seconds for peeps to see who won/how because round is over
     }
 }
@@ -600,12 +589,9 @@ function pass() {
 
 //displays folded cards on pile, hill only happen/appear if user is still in and its not a Derby
 function fold() {
-    console.log("clicked fold");
     user.playedMove_toServ = [user.cardSelectedStack_toServ, 'fold', user.username];
-    //clearTimeout(user.timerObj.timeoutVar); //stop timer
     removeSelectedFromHand(""); //removes card from hand
     resetSelected(); //remove cards from cardSelectedStack after action
-    //user.stillIn = false; //out of round
     user.hasPlayed = true;
 }
 
@@ -648,14 +634,16 @@ function nine() {
 
 //player ran out of time so auto play for them: if Derby => pass, otherwise => fold
 function autoPlay() {
-    console.log("In Auto Play");
     if (user.isDerby) { //is Derby so pass
         user.playedMove_toServ = [[], 'pass', user.username];
         user.stillIn = true; //out of round
-        console.log("auto passed...");
     } else { //fold because its normal play
         let randomCardNum = Math.floor((Math.random() * user.hand.length));
-        user.playedMove_toServ = [[user.hand[randomCardNum]], 'fold', user.username]; //if it chose a joker, joker will be set to a 2
+        if (user.isBattle) {
+            user.playedMove_toServ = [[user.hand[randomCardNum]], 'play', user.username];
+        } else { //normal
+            user.playedMove_toServ = [[user.hand[randomCardNum]], 'fold', user.username];
+        }
         resetSelected_AUTO(); //remove cards from cardSelectedStack after action
         removeSelectedFromHand(randomCardNum); //removes div/img from hand display given hand index and removes card from hand array []
         //user.stillIn = false; //out of round
@@ -722,22 +710,22 @@ function createMenu(div_) {
         });
 
         sel.on("change", function(event) {
-            console.log("CHANGE ::");
+            //console.log("CHANGE ::");
             //let option_text = $(this).children("option:selected").text();
             //the whole point here is that we are re-assigning the div and img
             //ids to new ids so they represent a specific val/card instead of wild
             let option_val = $(this).children("option:selected").val();
             let img_id = $(this).parent().children(0).get(0).id;
             let l = img_id.split("_")[2].length;
-            console.log(l);
-            console.log( img_id.substr(0, img_id.length - l) );
+            //console.log(l);
+            //console.log( img_id.substr(0, img_id.length - l) );
             let new_id = img_id.substr(0, img_id.length - l) + "_" + option_val;
-            console.log("before : " + img_id);
+            //console.log("before : " + img_id);
             document.getElementById(img_id).id = new_id; //set divs id to the new id so it
             document.getElementById( "div_" + img_id ).id = "div_" + new_id; //set divs id to the new id so it
-            console.log("option_val : " + option_val);
-            console.log("after : " + new_id);
-            console.log("- - - ... done CHANGE");
+            //console.log("option_val : " + option_val);
+            //console.log("after : " + new_id);
+            //console.log("- - - ... done CHANGE");
             cardsSelected(new_id, img_id);
         });
         //set div and img ids to have val "2s" as is in menu initially
@@ -755,9 +743,9 @@ function createMenu(div_) {
 //is selected, so have to change the id instead of a push or pop
 // ex div joker id: div_hand_12_14j_2s
 function cardsSelected(img_ID, old_ID){
-    console.log("CSS BEFORE: ");
-    console.log(user.cardSelectedStack);
-    console.log(user.cardSelectedStack_toServ);
+    //console.log("CSS BEFORE: ");
+    //console.log(user.cardSelectedStack);
+    //console.log(user.cardSelectedStack_toServ);
     document.getElementById("nineButton").style.display = "none";
     let div_ID = 'div_' + img_ID;
     let img = img_ID.split("_")[2]; //grabs just the img
@@ -767,7 +755,7 @@ function cardsSelected(img_ID, old_ID){
         if ( pos >= 0 ) { //if the id is in the array, its already selected, so UNhighlight it
             if (img.indexOf('9', 0) >= 0 && user.cardSelectedStack.length === 1 ) { //selected card was a 9 not from joker
                 document.getElementById("nineButton").style.display = "none";
-                console.log("9 wild gone...");
+                //console.log("9 wild gone...");
             }
             d.style.backgroundColor = "white";
             user.cardSelectedStack.splice(pos, 1);
@@ -775,14 +763,14 @@ function cardsSelected(img_ID, old_ID){
         } else { //if its not in the array then Highlight the card and add it to the array
             if (img.indexOf('9', 0) >= 0 && user.cardSelectedStack.length === 0) { //only selected card is a 9 not from joker
                 document.getElementById("nineButton").style.display = "block";
-                console.log("9 wild IN");
+                //console.log("9 wild IN");
             }
-            console.log(img);
+            //console.log(img);
             if (img === "14j") {
-                console.log("JOKER!");
+                //console.log("JOKER!");
                 user.cardSelectedStack_toServ.push(div_ID.split("_")[4]); //img from joker
             } else {
-                console.log("not a JOKER");
+                //console.log("not a JOKER");
                 user.cardSelectedStack_toServ.push(img); //non joker img
             }
             d.style.backgroundColor = "blue";
@@ -790,11 +778,11 @@ function cardsSelected(img_ID, old_ID){
         }
         if (user.cardSelectedStack.length > 1) {
             document.getElementById("nineButton").style.display = "none";
-            console.log("9 wild gone...");
+            //console.log("9 wild gone...");
         } else if (user.cardSelectedStack.length === 1 && user.cardSelectedStack[0].split("_")[3].indexOf('9', 0) >= 0) {
             //only selected card is a 9 (not from joker)
             document.getElementById("nineButton").style.display = "block";
-            console.log("9 wild IN");
+            //console.log("9 wild IN");
         }
     } else { //here bc card is joker options change. Find and change the old joker id to new id
         pos = user.cardSelectedStack.indexOf("div_" + old_ID); //pos of old joker id
@@ -803,10 +791,10 @@ function cardsSelected(img_ID, old_ID){
             user.cardSelectedStack_toServ[pos] = div_ID.split("_")[4]; //new joker value
         }
     }
-    console.log("CSS After: ");
-    console.log(user.cardSelectedStack);
-    console.log(user.cardSelectedStack_toServ);
-    console.log("- - - ...");
+    //console.log("CSS After: ");
+    //console.log(user.cardSelectedStack);
+    //console.log(user.cardSelectedStack_toServ);
+    //console.log("- - - ...");
 }
 
 
@@ -830,18 +818,20 @@ function removeSelectedFromHand(ind) {
             document.getElementById(user.cardSelectedStack[i]).remove(); //removes card from hand
         }
     } else { //called by auto_play
+        /*
         console.log("AUTO REM");
         console.log(user.hand_toServ);
         console.log(user.hand);
         console.log(user.hand_toServ);
+        */
         let id = document.getElementById("hand_R").children[ind].children[0].id; //div id
         document.getElementById("hand_R").children[ind].children[0].remove();
         user.hand.splice(ind, 1); //removes card from hand array
         user.hand_toServ = user.hand.slice(0); //dont touch the hand, make a copy and send that to serv, protect against race conditions
-        console.log(user.hand);
-        console.log(user.hand_toServ);
+        //console.log(user.hand);
+        //console.log(user.hand_toServ);
     }
-    console.log("- - - ... end");
+    //console.log("- - - ... end");
 }
 
 
@@ -899,7 +889,6 @@ function renderLastPlayed(last) {
         let wcard = "wild_H.jpg";
         if (!user.higherIsBetter) {
             wcard = "wild_L.jpg";
-            console.log("wild_L.jpg");
         }
         let r1 = Math.floor((Math.random() * 255));
         let r2 = Math.floor((Math.random() * 255));
@@ -929,7 +918,6 @@ function renderLastPlayed(last) {
         div_.appendChild(p);
         //document.getElementById("cardPileRow").appendChild(td_).appendChild(div_).appendChild(card_IMG);
     } else if (last[1] === 'fold') { //create 1 dive that will be the background for however many cards were played each time
-        console.log("RENDER FOLD");
         let r1 = Math.floor((Math.random() * 255));
         let r2 = Math.floor((Math.random() * 255));
         let r3 = Math.floor((Math.random() * 255));
@@ -1075,7 +1063,6 @@ function updateChatList(lst) {
 function endRound(winner) {
     user.end_round = "true";
     user.timerObj.endRound_timeout = setTimeout(newRound, 10000); //15 seconds
-    console.log("newRound timeout set");
     document.getElementById("round_winner").innerHTML = winner + " won the round.";
     document.getElementById("round_winner").style.backgroundColor = "pink";
     document.getElementById("round_title").style.backgroundColor = "pink";
@@ -1088,7 +1075,6 @@ function endRound(winner) {
 }
 
 function newRound() {
-    console.log("New Round method");
     alert("New Round!");
     document.getElementById("round_winner").innerHTML = "";
     document.getElementById("round_title").style.backgroundColor = "#7F7C6A";
@@ -1105,7 +1091,6 @@ function newRound() {
         },
         function(data, status) {
             user.end_round = "false";
-            console.log("Started New Round");
     });
 }
 
@@ -1118,7 +1103,6 @@ window.addEventListener('beforeunload', function(e) {
                 roomID: roomID
             },
             function(data, status){
-                console.log("Deleted!");
         });
     } else {
         //console.log("minion left...");
