@@ -11,11 +11,8 @@ let mongoose = require("mongoose");
 var bodyParser = require("body-parser");
 
 const setupServer = async () => {
-
     let app = express();
     let server = http.createServer(app);
-    //let io = socketio(server);
-    //io.on('connection', onConnection);
 
     app.use(express.static(`${__dirname}/../client`));
     app.use(bodyParser.urlencoded({ extended: false }));
@@ -42,18 +39,6 @@ const setupServer = async () => {
     server.listen(8080, () => { //4000
         console.log('Started on 8080');
     });
-
-    /*
-    var SOCKET_LIST = {};
-    function onConnection(sock) {
-        sock.id = Math.random();
-        SOCKET_LIST[sock.id] = sock;
-
-        sock.emit('msg', 'You are Connected!');
-        sock.on('msg', (txt) => io.emit('msg', txt));
-    }
-    */
-
 };
 // Run the server
 setupServer();

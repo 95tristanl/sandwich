@@ -47,6 +47,7 @@ class Player {
         this.timerObj = {};
         this.chatList = [];
         this.end_round = "false";
+        this.serverCardPile = [];
     }
 }
 
@@ -121,27 +122,6 @@ window.onload = () => {
     }
 };
 // on window load - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-
-/*
-//messaging - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function onMsg(text) {
-    var list = document.getElementById('chatList');
-    var el = document.createElement('li');
-    el.innerHTML = text;
-    list.appendChild(el);
-}
-
-document.getElementById('chat-form').addEventListener('submit', function(e) {
-    var input = document.getElementById('chat-input');
-    var value = input.value;
-    input.value = '';        // reset input
-    sock.emit('msg', value); // send inputed text
-    e.preventDefault();
-});
-//messaging - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-*/
-
 
 //called when startGame Button is clicked so only lord can enter this function and only if all players are in the room
 function startGame_justLord() {
@@ -232,6 +212,7 @@ function playGame_keepUpdatingFromServer() { //called every timestep (some amoun
             user.isDerby = server_data.isDerby;
             user.battleStack_Players = server_data.battleStack_Players;
             user.hand = server_data.hand; //update before setHand() below
+            user.serverCardPile = server_data.cardPile;
             if (user.cardPile.length < server_data.cardPile.length) {
                 renderLastPlayed(server_data.cardPile[0]);
             }
@@ -284,9 +265,21 @@ function playGame_afterServerUpdate() { //called every second
                     }
                     alert('Your Turn');
                     user.yourTurn_FirstCall = false;
+                    console.log(user.cardPile);
+                    console.log("serv:");
+                    console.log(user.serverCardPile);
                 }
 
-                if (user.hand.length > 0) {
+                if (user.hand.length === 0) {//ran out of cards...
+                    console.log("Ran Out Of Cards...");
+                    if (user.isDerby) {
+                        user.playedMove_toServ = [[], 'pass', user.username];
+                        user.hasPlayed = true;
+                    } else {
+                        user.playedMove_toServ = [['outofcards'], 'outofcards', user.username]; //going to serv
+                        user.hasPlayed = true;
+                    }
+                } else if (user.hand.length > 0) {
                     document.getElementById("battleButton").style.display = "none"; //only show when not your turn
                     document.getElementById("playButton").style.display = "block";
                     document.getElementById("foldButton").style.display = "block";
@@ -306,66 +299,60 @@ function playGame_afterServerUpdate() { //called every second
                         document.getElementById("foldButton").style.display = "none";
                         document.getElementById("passButton").style.display = "block";
                     }
+                }
 
-                    let divClock = document.getElementById("clock");
+                let divClock = document.getElementById("clock");
 
-                    if(!user.hasPlayed) { //while user has not played, should start as false
+                if(!user.hasPlayed) { //while user has not played, should start as false
+                    // - - - TIMER STUFF ***
+                    let curTime = Math.round( ((new Date()).getTime())/1000 ); //user.timerObj.timeoutVar - ( (new Date()).getTime() - user.timerObj.startTimeMS);
+                    let passedTime = Math.round( curTime - user.timerObj.startTimeMS );
+                    let timeLeft = Math.round( (user.timerObj.timeoutNum / 1000) - passedTime ); //in sec
 
-                        // - - - TIMER STUFF ***
-                        let curTime = Math.round( ((new Date()).getTime())/1000 ); //user.timerObj.timeoutVar - ( (new Date()).getTime() - user.timerObj.startTimeMS);
-                        let passedTime = Math.round( curTime - user.timerObj.startTimeMS );
-                        let timeLeft = Math.round( (user.timerObj.timeoutNum / 1000) - passedTime ); //in sec
-
-                        if (timeLeft >= 20) {
-                            divClock.style.backgroundColor = "green";
-                            divClock.innerHTML = timeLeft;
-                        } else if (timeLeft < 20 && timeLeft >= 10) {
-                            divClock.style.backgroundColor = "orange";
-                            divClock.innerHTML = timeLeft;
-                        } else if (timeLeft < 10 && timeLeft >= 0) {
-                            divClock.style.backgroundColor = "red";
-                            divClock.innerHTML = timeLeft;
-                        } else if (timeLeft < 0) {
-                            //clearTimeout(user.timerObj.timeoutVar); //stop timer
-                            alert("Auto played, you ran out of time.");
-                            divClock.style.backgroundColor = "white";
-                            divClock.innerHTML = 30;
-                            autoPlay();
-                        }
-                        // - - - TIMER STUFF ***
-
-                    } else { //played
-                        if (divClock.style.backgroundColor !== "white" || divClock.innerHTML !== 30) { // reset clock
-                            divClock.style.backgroundColor = "white";
-                            divClock.innerHTML = 30;
-                        }
-                        user.yourTurn = false; //reset turn bool
-                        user.hasPlayed = false; //reset hasPlayed bool
-                        user.yourTurn_FirstCall = true;
-                        let post_obj = {};
-                        post_obj.roomID = roomID;
-                        post_obj.user = user.username;
-                        post_obj.usersHand = user.hand_toServ;
-                        post_obj.usersMove = user.playedMove_toServ;
-                        post_obj.usersTurn = user.yourTurn;
-                        post_obj.isBattle = user.isBattle_toServ;
-                        post_obj.isSandwich = user.isSandwich_toServ;
-                        post_obj.isDerby = user.isDerby_toServ;
-                        let post_JSON = JSON.stringify(post_obj);
-                        //once played, send data to server, only after your turn
-                        $.post('/turnOver_update_clientToServer',
-                            {
-                                user_data: post_JSON
-                            },
-                            function(data, status) {
-                                user.isBattle_toServ = ["F", ""];
-                                user.isSandwich_toServ = ["F", ""];
-                        });
+                    if (timeLeft >= 20) {
+                        divClock.style.backgroundColor = "green";
+                        divClock.innerHTML = timeLeft;
+                    } else if (timeLeft < 20 && timeLeft >= 10) {
+                        divClock.style.backgroundColor = "orange";
+                        divClock.innerHTML = timeLeft;
+                    } else if (timeLeft < 10 && timeLeft >= 0) {
+                        divClock.style.backgroundColor = "red";
+                        divClock.innerHTML = timeLeft;
+                    } else if (timeLeft < 0) {
+                        //clearTimeout(user.timerObj.timeoutVar); //stop timer
+                        alert("Auto played, you ran out of time.");
+                        divClock.style.backgroundColor = "white";
+                        divClock.innerHTML = 30;
+                        autoPlay();
                     }
-                } else { //ran out of cards...
-                    user.stillIn = false;
-                    user.yourTurn = false;
-                    console.log("Ran Out Of Cards...");
+                    // - - - TIMER STUFF ***
+                } else { //played
+                    if (divClock.style.backgroundColor !== "white" || divClock.innerHTML !== 30) { // reset clock
+                        divClock.style.backgroundColor = "white";
+                        divClock.innerHTML = 30;
+                    }
+                    user.yourTurn = false; //reset turn bool
+                    user.hasPlayed = false; //reset hasPlayed bool
+                    user.yourTurn_FirstCall = true;
+                    let post_obj = {};
+                    post_obj.roomID = roomID;
+                    post_obj.user = user.username;
+                    post_obj.usersHand = user.hand_toServ;
+                    post_obj.usersMove = user.playedMove_toServ;
+                    post_obj.usersTurn = user.yourTurn;
+                    post_obj.isBattle = user.isBattle_toServ;
+                    post_obj.isSandwich = user.isSandwich_toServ;
+                    post_obj.isDerby = user.isDerby_toServ;
+                    let post_JSON = JSON.stringify(post_obj);
+                    //once played, send data to server, only after your turn
+                    $.post('/turnOver_update_clientToServer',
+                        {
+                            user_data: post_JSON
+                        },
+                        function(data, status) {
+                            user.isBattle_toServ = ["F", ""];
+                            user.isSandwich_toServ = ["F", ""];
+                    });
                 }
             } else { //not your turn so wait
                 if (user.battleStack_Players.indexOf(user.username) >= 0) { //if user is already playing in a battle, remove the battle button
@@ -514,6 +501,14 @@ function play() {
                     let lastPlayedCard = lastPlay[0].substr(0, lastPlay[0].length - 1); //card value
                     usersCard = parseInt(usersCard); //was string
                     lastPlayedCard = parseInt(lastPlayedCard);  //was string
+                    console.log("lp vs users: " + lastPlayedCard + " : " + usersCard + ".");
+                    if (usersCard === "14") {
+                        console.log("JKER val 14: " + user.cardSelectedStack[0].split("_")[4].substr(0, user.cardSelectedStack[0].split("_")[4].length - 1));
+                        usersCard = user.cardSelectedStack[0].split("_")[4].substr(0, user.cardSelectedStack[0].split("_")[4].length - 1); //card value
+                    }
+                    if (usersCard === "14j") {
+                        console.log("JKER val 14j: " + user.cardSelectedStack[0].split("_")[4].substr(0, user.cardSelectedStack[0].split("_")[4].length - 1));
+                    }
 
                     if (user.cardSelectedStack.length >= lastPlay.length && usersCard === 15) {
                         //valid, ace/aces were played
@@ -577,12 +572,10 @@ function play() {
 
 function pass() {
     if (user.isDerby) {
-        //clearTimeout(user.timerObj.timeoutVar); //stop timer
         user.playedMove_toServ = [[], 'pass', user.username];
         resetSelected(); //remove cards from cardSelectedStack after action
         user.hasPlayed = true;
         user.stillIn = true;
-        user.yourTurn = false; //reset turn bool
     }
 }
 
@@ -615,7 +608,6 @@ function nine() {
                 document.getElementById("value").innerHTML = "Higher";
                 isHigher = "T";
             }
-            //clearTimeout(user.timerObj.timeoutVar); //stop timer
             removeSelectedFromHand(""); //removes card from hand (only card selected)
             user.playedMove_toServ = [[isHigher], 'wild', user.username];
             resetSelected(); //remove cards from cardSelectedStack and hand array after action
@@ -815,21 +807,25 @@ function resetSelected_AUTO() {
 function removeSelectedFromHand(ind) {
     if (ind === "") {
         for (let i = 0; i < user.cardSelectedStack.length; i++) {
+            console.log("removing... not auto");
+            console.log(user.cardSelectedStack[i]);
+            console.log(document.getElementById(user.cardSelectedStack[i]));
             document.getElementById(user.cardSelectedStack[i]).remove(); //removes card from hand
         }
     } else { //called by auto_play
-        /*
+
         console.log("AUTO REM");
         console.log(user.hand_toServ);
         console.log(user.hand);
-        console.log(user.hand_toServ);
-        */
+        console.log(document.getElementById("hand_R").children[ind]);
+        console.log(document.getElementById("hand_R").children[ind].children[0]);
+
         let id = document.getElementById("hand_R").children[ind].children[0].id; //div id
         document.getElementById("hand_R").children[ind].children[0].remove();
         user.hand.splice(ind, 1); //removes card from hand array
         user.hand_toServ = user.hand.slice(0); //dont touch the hand, make a copy and send that to serv, protect against race conditions
-        //console.log(user.hand);
-        //console.log(user.hand_toServ);
+        console.log(user.hand);
+        console.log(user.hand_toServ);
     }
     //console.log("- - - ... end");
 }
@@ -873,7 +869,7 @@ function renderLastPlayed(last) {
         td_.appendChild(div_);
         for(let j = 0; j < last[0].length; j++) {
             let card_IMG = document.createElement("IMG");
-            card_IMG.setAttribute("src", `/images/${ last[0][j] }.png`);
+            card_IMG.setAttribute("src", `/images/${last[0][j]}.png`);
             card_IMG.setAttribute("width", "65"); //80
             card_IMG.setAttribute("height", "92"); //120
             div_.appendChild(card_IMG);
@@ -917,6 +913,33 @@ function renderLastPlayed(last) {
         p.appendChild(t);
         div_.appendChild(p);
         //document.getElementById("cardPileRow").appendChild(td_).appendChild(div_).appendChild(card_IMG);
+    } else if (last[1] === 'outofcards') {
+        let r1 = Math.floor((Math.random() * 255));
+        let r2 = Math.floor((Math.random() * 255));
+        let r3 = Math.floor((Math.random() * 255));
+        let td_ = document.createElement("td");
+        let div_ = document.createElement("div");
+        div_.style.backgroundColor = "rgb("+ r1 +", "+ r2 +", "+ r3 +")";
+        //div_.className = "cardPileDivs";
+        div_.style.borderRadius = "20px";
+        div_.style.padding = "20px 10px 10px 10px";
+        div_.style.margin = "10px 5px 10px 5px";
+        div_.style.color = "white";
+        div_.style.verticalAlign = "middle";
+        div_.style.lineHeight = "20px";
+        let card_IMG = document.createElement("IMG");
+        card_IMG.setAttribute("src", '/images/outofcards.png');
+        card_IMG.setAttribute("width", "65"); //80
+        card_IMG.setAttribute("height", "92"); //120
+        let pileRow = document.getElementById("cardPileRow");
+        td_.appendChild(div_);
+        div_.appendChild(card_IMG);
+        pileRow.insertBefore(td_ , pileRow.firstChild);
+        let p = document.createElement('P');
+        let t = document.createTextNode(last[2]);
+        p.className = "pInDiv";
+        p.appendChild(t);
+        div_.appendChild(p);
     } else if (last[1] === 'fold') { //create 1 dive that will be the background for however many cards were played each time
         let r1 = Math.floor((Math.random() * 255));
         let r2 = Math.floor((Math.random() * 255));
@@ -1066,7 +1089,6 @@ function endRound(winner) {
     document.getElementById("round_winner").innerHTML = winner + " won the round.";
     document.getElementById("round_winner").style.backgroundColor = "pink";
     document.getElementById("round_title").style.backgroundColor = "pink";
-
     document.getElementById("foldButton").style.display = "none";
     document.getElementById("passButton").style.display = "none";
     document.getElementById("playButton").style.display = "none";

@@ -181,9 +181,6 @@ module.exports = app => {
                     res.status(300).send({error: "No Schema Found!"});
                 } else {
                     try {
-                        console.log("client to serv");
-                        console.log(data.usersTurn);
-                        console.log(schema.dict_varData);
                         let battleOver = false;
                         let derbyOver = false;
                         let maybeWinner = ""; //won round
@@ -253,6 +250,8 @@ module.exports = app => {
                             } else { //already a part of battle so add his move to stack
                                 schema.battleStack_Moves.push(data.usersMove); //add move to existing list of moves
                             }
+                            console.log("in battle: " + data.user);
+                            console.log(data.usersMove);
 
                             //see who won battle, use short circuit eval because schema.battleStack[1] might not exist if a 3rd or more peeps join battle before
                             //any prev players played their batle moves
@@ -282,9 +281,13 @@ module.exports = app => {
                                         schema.markModified(`dict_varData.${resData[0][i][2]}`); //save
                                     }
                                     //wait for tied players to play their next battle moves
+                                } else if (resData[0].length == 0) { //everybody ran out of cards...
+                                    battleOver = true;
+                                    maybeWinner = "haha... no winner"; //won round
                                 } else {
                                     battleOver = true;
                                     maybeWinner = resData[0][0][2]; //won round
+                                    console.log("won battle: " + maybeWinner);
                                 }
                             }
                             //wait for all people in battle to play their moves
@@ -325,6 +328,7 @@ module.exports = app => {
                                 derbyOver = aFlag; //this ends the round if true
                             } else {
                                 console.log("NORMAL PLAY");
+                                console.log(data.usersMove);
                                 schema.cardPile.unshift(data.usersMove); //put move on top of cardPile (in front of array)
                                 if (data.usersMove[1] === "play" && data.usersMove[0][0].substr(0,2) === "15") { //Ace was played so end round
                                     isAce = true; //only when not a battle and not a derby
@@ -334,10 +338,14 @@ module.exports = app => {
                                     } else {
                                         schema.higherIsBetter = false;
                                     }
-                                } else if (data.usersMove[1] === "fold") {
+                                } else if (data.usersMove[1] === "fold" || data.usersMove[1] === "outofcards") {
                                     schema.dict_varData[data.user][1] = false; //that person folded so is no longer in round
                                     schema.markModified(`dict_varData.${data.user}`);
-                                    console.log("folded");
+                                    if (data.usersMove[1] === "outofcards") {
+                                        console.log("ran out of cards");
+                                    } else {
+                                        console.log("folded");
+                                    }
                                 }
 
                                 if (isAce) { //ace was played outside of a battle
@@ -364,7 +372,7 @@ module.exports = app => {
                             if (stillIn_count === 1 || isAce || battleOver || derbyOver) { //round is over.
                                 //update score
                                 let card_count = 0;
-                                for (let x = 0; x < schema.cardPile.length; x++) {
+                                for (let x = 0; x < schema.cardPile.length; x++) { //only tally play, wild, and folded cards
                                     if (schema.cardPile[x][1] === "play" || schema.cardPile[x][1] === "fold") {
                                         card_count = card_count + schema.cardPile[x][0].length;
                                     } else if (schema.cardPile[x][1] === "battle") {
@@ -375,8 +383,13 @@ module.exports = app => {
                                         card_count = card_count + 1;
                                     }
                                 }
-                                schema.dict_varData[maybeWinner][3] = schema.dict_varData[maybeWinner][3] + card_count; //adds cards from battle to score
-                                schema.markModified(`dict_varData.${maybeWinner}`); //save
+                                if (maybeWinner !== "haha... no winner") {
+                                    schema.dict_varData[maybeWinner][3] = schema.dict_varData[maybeWinner][3] + card_count; //adds cards from battle to score
+                                    schema.markModified(`dict_varData.${maybeWinner}`); //save
+                                } else { //there wasn't a winner...
+                                    //dont update schema.dict_varData
+                                }
+
                                 //refuel?
                                 console.log("refuel?");
                                 let refuelStack = [];
@@ -656,6 +669,13 @@ function whoWonBattle(battleStack_Moves, higherIsBetter) {
     console.log("in wwB");
     let nineStack = [];
     console.log(battleStack_Moves);
+    //find anyone who ran out of cards (this rarely happens...)
+    for (let i = 0; i < battleStack_Moves.length; i++) {
+        if (battleStack_Moves[i][1] === "outofcards") { //wild 9 was played, update higherIsBetter.
+            console.log("ran out of cards: " + battleStack_Moves[i][2]);
+            battleStack_Moves.splice(battleStack_Moves[i], 1); //remove player because he has no cards
+        }
+    }
     //find people who played a wild 9 and update
     for (let i = 0; i < battleStack_Moves.length; i++) {
         if (battleStack_Moves[i][1] === "wild") { //wild 9 was played, update higherIsBetter.
@@ -674,28 +694,33 @@ function whoWonBattle(battleStack_Moves, higherIsBetter) {
         console.log("rw");
     }
     console.log("ee");
+    let winner = [];
     //now go through stack and see who won, there could be a tie
-    let winner = [battleStack_Moves[0]]; //start off assuming this player is winner
-    console.log(winner);
-    battleStack_Moves.splice(0, 1); //remove start-off winner player
-    console.log(battleStack_Moves);
-    for (let i = 0; i < battleStack_Moves.length; i++) { //look through rest and compare
-        let leadingCard = winner[0][0][0]; //string ex. "12c"
-
-        let curCard = battleStack_Moves[i][0][0]; //string ex. "12c"
-
-        leadingCard = parseInt( leadingCard.substr(0, leadingCard.length - 1) ); //card value
-        curCard = parseInt( curCard.substr(0, curCard.length - 1) ); //card value
-        console.log(leadingCard);
-        console.log(curCard);
-        if ( (higherIsBetter && leadingCard < curCard) || (!higherIsBetter && leadingCard > curCard) ) {
-            winner = [battleStack_Moves[i]];
-            console.log("new leader");
-            console.log(winner);
-        } else if (leadingCard === curCard) { //tie, so add to winner stack
-            winner.push(battleStack_Moves[i]);
-            console.log(winner);
+    if (battleStack_Moves.length > 0) {
+        winner = [battleStack_Moves[0]]; //start off assuming this player is winner
+        console.log(winner);
+        battleStack_Moves.splice(0, 1); //remove start-off winner player
+        console.log(battleStack_Moves);
+        for (let i = 0; i < battleStack_Moves.length; i++) { //look through rest and compare
+            let leadingCard = winner[0][0][0]; //string ex. "12c"
+            let curCard = battleStack_Moves[i][0][0]; //string ex. "12c"
+            leadingCard = parseInt( leadingCard.substr(0, leadingCard.length - 1) ); //card value
+            curCard = parseInt( curCard.substr(0, curCard.length - 1) ); //card value
+            console.log(leadingCard);
+            console.log(curCard);
+            if ( (higherIsBetter && leadingCard < curCard) || (!higherIsBetter && leadingCard > curCard) ) {
+                winner = [battleStack_Moves[i]];
+                console.log("new leader");
+                console.log(winner);
+            } else if (leadingCard === curCard) { //tie, so add to winner stack
+                winner.push(battleStack_Moves[i]);
+                console.log(winner);
+            }
         }
+    } else { //somehow both/all of the poeple battling ran out of cards... possible but very, very, very, improbable
+        //winner = []
+        console.log("no moves in battle stack...");
+        console.log(winner);
     }
 
     return [winner, higherIsBetter]; //return winner/s and higherIsBetter because it could be updated
