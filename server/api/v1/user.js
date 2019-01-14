@@ -284,6 +284,7 @@ module.exports = app => {
                                 } else if (resData[0].length == 0) { //everybody ran out of cards...
                                     battleOver = true;
                                     maybeWinner = "haha... no winner"; //won round
+                                    console.log("won battle: " + maybeWinner);
                                 } else {
                                     battleOver = true;
                                     maybeWinner = resData[0][0][2]; //won round
@@ -377,7 +378,9 @@ module.exports = app => {
                                         card_count = card_count + schema.cardPile[x][0].length;
                                     } else if (schema.cardPile[x][1] === "battle") {
                                         for (let y = 0; y < schema.cardPile[x][0].length; y++) {
-                                            card_count = card_count + schema.cardPile[x][0][y][0].length; //num cards played per person in battle
+                                            if (schema.cardPile[x][0][y][1] !== "outofcards") {
+                                                card_count = card_count + schema.cardPile[x][0][y][0].length; //num cards played per person in battle
+                                            }
                                         }
                                     } else if (schema.cardPile[x][1] === "wild") {
                                         card_count = card_count + 1;
@@ -392,37 +395,41 @@ module.exports = app => {
 
                                 //refuel?
                                 console.log("refuel?");
-                                let refuelStack = [];
-                                let doneCounter = 0;
-                                for (let key in schema.dict_hands) {
-                                    if (schema.dict_hands[key].length <= schema.refuelNum ) {
-                                        refuelStack.push(key); //if player is below limit, add him to stack so he can get refueled
-                                        console.log(key + " is refueling");
-                                    }
-                                }
-                                do { //continuous goes around and deals 1 card at a time so cards are dealt evenly amoung players needing refill
-                                    doneCounter = 0;
-                                    for (let i = 0; i < refuelStack.length; i++) {
-                                        console.log(i);
-                                        if (schema.dict_hands[refuelStack[i]].length < schema.handSize && schema.deck.length > 0) { //refuel
-                                            schema.dict_hands[refuelStack[i]].push(schema.deck[ schema.deck.length - 1 ]);
-                                            schema.markModified(`dict_hands.${refuelStack[i]}`); //save
-                                            schema.dict_varData[refuelStack[i]][0] = schema.dict_hands[refuelStack[i]].length; //update cards in hand in dict_varData
-                                            schema.markModified(`dict_dict_varData.${refuelStack[i]}`); //save
-                                            console.log("ref: " + refuelStack[i] + " : " + schema.deck[ schema.deck.length - 1 ]);
-                                            schema.deck.pop(); //get rid of last card in deck that was just dealt to players hand
-                                        } else {
-                                            doneCounter = doneCounter + 1;
-                                            console.log("done refueling a player");
+                                if (schema.deck.length > 0) {
+                                    let refuelStack = [];
+                                    let doneCounter = 0;
+                                    for (let key in schema.dict_hands) {
+                                        if (schema.dict_hands[key].length <= schema.refuelNum) {
+                                            refuelStack.push(key); //if player is below limit, add him to stack so he can get refueled
+                                            console.log(key + " is refueling");
                                         }
                                     }
-                                    console.log("doneCounter : " + doneCounter);
-                                } while (doneCounter < refuelStack.length)
-                                //only sort hands of player/s that needed to refuel
-                                console.log("refuelStack.length " + refuelStack.length);
-                                for (let i = 0; i < refuelStack.length; i++) {
-                                    schema.dict_hands[refuelStack[i]] = sortHand(schema.dict_hands[refuelStack[i]])
-                                    schema.markModified(`dict_hands.${refuelStack[i]}`);
+                                    do { //continuous goes around and deals 1 card at a time so cards are dealt evenly amoung players needing refill
+                                        doneCounter = 0;
+                                        for (let i = 0; i < refuelStack.length; i++) {
+                                            console.log(i);
+                                            if (schema.dict_hands[refuelStack[i]].length < schema.handSize && schema.deck.length > 0) { //refuel
+                                                schema.dict_hands[refuelStack[i]].push(schema.deck[ schema.deck.length - 1 ]);
+                                                schema.markModified(`dict_hands.${refuelStack[i]}`); //save
+                                                schema.dict_varData[refuelStack[i]][0] = schema.dict_hands[refuelStack[i]].length; //update cards in hand in dict_varData
+                                                schema.markModified(`dict_dict_varData.${refuelStack[i]}`); //save
+                                                console.log("ref: " + refuelStack[i] + " : " + schema.deck[ schema.deck.length - 1 ]);
+                                                schema.deck.pop(); //get rid of last card in deck that was just dealt to players hand
+                                            } else {
+                                                doneCounter = doneCounter + 1;
+                                                console.log("done refueling a player");
+                                            }
+                                        }
+                                        console.log("doneCounter : " + doneCounter);
+                                    } while (doneCounter < refuelStack.length)
+                                    //only sort hands of player/s that needed to refuel
+                                    console.log("refuelStack.length " + refuelStack.length);
+                                    for (let i = 0; i < refuelStack.length; i++) {
+                                        schema.dict_hands[refuelStack[i]] = sortHand(schema.dict_hands[refuelStack[i]])
+                                        schema.markModified(`dict_hands.${refuelStack[i]}`);
+                                    }
+                                } else {
+                                    console.log("no more cards in deck... cant refuel");
                                 }
                                 //reset everything for next round since round is over
                                 schema.isBattle = false;
@@ -436,9 +443,7 @@ module.exports = app => {
                                     schema.dict_varData[key][2] = false; //set yourTurn to false for everyone
                                     schema.markModified(`dict_varData.${key}`); //save
                                 }
-
                                 console.log(schema.end_round);
-
                                 //gameOver?
                                 if (schema.deck.length === 0) { //even if no cards left in deck, play until only 1 or 0 people left with cards
                                     console.log("no cards left in deck");
@@ -458,7 +463,9 @@ module.exports = app => {
                                         for (let keyy in schema.dict_varData) {
                                             if (schema.dict_varData[keyy][3] > schema.dict_varData[winner[0]][3]) {
                                                 winner = [keyy]; //better than the person or people tied
-                                            } else if (schema.dict_varData[keyy][3] === schema.dict_varData[winner[0]][3]) {
+                                                console.log("leading gmOv: " + keyy);
+                                            } else if (schema.dict_varData[keyy][3] === schema.dict_varData[winner[0]][3] && keyy !== schema.lord) {
+                                                console.log("now its a tie: " + keyy);
                                                 winner.push(keyy); //so far is a tie
                                             }
                                         }
@@ -624,7 +631,7 @@ function makeDeck(numDecks) {
     */
 
     //length = 18
-    let deck = ['11c', '11d', '11h', '11s', '12c', '12d', '12h', '12s', '13c', '13d', '13h', '13s', '14j', '14j', '15c', '15d', '15h', '15s'];
+    let deck = ['11h', '11s', '12c', '12d', '12h', '12s', '13c', '13d', '13h', '13s', '14j', '14j'];
 
     for (let i = 0; i < numDecks; i++) {
         sumDeck = sumDeck.concat(deck);
@@ -667,60 +674,55 @@ function sortHand(hand) {
 
 function whoWonBattle(battleStack_Moves, higherIsBetter) {
     console.log("in wwB");
-    let nineStack = [];
+    let plays = [];
     console.log(battleStack_Moves);
     //find anyone who ran out of cards (this rarely happens...)
     for (let i = 0; i < battleStack_Moves.length; i++) {
-        if (battleStack_Moves[i][1] === "outofcards") { //wild 9 was played, update higherIsBetter.
-            console.log("ran out of cards: " + battleStack_Moves[i][2]);
-            battleStack_Moves.splice(battleStack_Moves[i], 1); //remove player because he has no cards
-        }
-    }
-    //find people who played a wild 9 and update
-    for (let i = 0; i < battleStack_Moves.length; i++) {
-        if (battleStack_Moves[i][1] === "wild") { //wild 9 was played, update higherIsBetter.
-            console.log("wild");
+        if (battleStack_Moves[i][1] === "play") {
+            plays.push(battleStack_Moves[i]); //
+        } else if (battleStack_Moves[i][1] === "wild") { //wild 9 was played, update higherIsBetter.
+            console.log("wild 9 was played in battle " + battleStack_Moves[i][2]);
             if (battleStack_Moves[i][0][0] === "T") {
                 higherIsBetter = true;
             } else {
                 higherIsBetter = false;
             }
-            nineStack.push(i);
+        } else if (battleStack_Moves[i][1] === "fold") {
+            console.log("folded in a battle... lame " + battleStack_Moves[i][2]);
+        } else if (battleStack_Moves[i][1] === "outofcards") {
+            console.log("ran out of cards: " + battleStack_Moves[i][2]);
+        } else {
+            console.log("UH? : " + battleStack_Moves[i][1] + " : " + battleStack_Moves[i][2]);
         }
     }
-    //remove people who played a wild 9
-    for (let i = 0; i < nineStack.length; i++) {
-        battleStack_Moves.splice(nineStack[i], 1);
-        console.log("rw");
-    }
     console.log("ee");
+    console.log(plays);
     let winner = [];
     //now go through stack and see who won, there could be a tie
-    if (battleStack_Moves.length > 0) {
-        winner = [battleStack_Moves[0]]; //start off assuming this player is winner
+    if (plays.length > 0) {
+        winner = [plays[0]]; //start off assuming this player is winner
         console.log(winner);
-        battleStack_Moves.splice(0, 1); //remove start-off winner player
-        console.log(battleStack_Moves);
-        for (let i = 0; i < battleStack_Moves.length; i++) { //look through rest and compare
+        plays.splice(0, 1); //remove start-off winner player
+        console.log(plays);
+        for (let i = 0; i < plays.length; i++) { //look through rest and compare
             let leadingCard = winner[0][0][0]; //string ex. "12c"
-            let curCard = battleStack_Moves[i][0][0]; //string ex. "12c"
+            let curCard = plays[i][0][0]; //string ex. "12c"
             leadingCard = parseInt( leadingCard.substr(0, leadingCard.length - 1) ); //card value
             curCard = parseInt( curCard.substr(0, curCard.length - 1) ); //card value
             console.log(leadingCard);
             console.log(curCard);
             if ( (higherIsBetter && leadingCard < curCard) || (!higherIsBetter && leadingCard > curCard) ) {
-                winner = [battleStack_Moves[i]];
+                winner = [plays[i]];
                 console.log("new leader");
                 console.log(winner);
             } else if (leadingCard === curCard) { //tie, so add to winner stack
-                winner.push(battleStack_Moves[i]);
+                winner.push(plays[i]);
                 console.log(winner);
             }
         }
     } else { //somehow both/all of the poeple battling ran out of cards... possible but very, very, very, improbable
-        //winner = []
-        console.log("no moves in battle stack...");
-        console.log(winner);
+        console.log("no moves in battle stack... no winner...");
+        console.log(winner); // = []
     }
 
     return [winner, higherIsBetter]; //return winner/s and higherIsBetter because it could be updated

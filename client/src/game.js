@@ -232,7 +232,15 @@ function playGame_keepUpdatingFromServer() { //called every timestep (some amoun
             if (server_data.gameOver[0] === "T") {
                 clearInterval(user.timerObj.keepUpdating);
                 alert("Game Over!");
-                document.getElementById("round_winner").innerHTML = server_data.gameOver[1] + " WON!!! To play again, exit and create another room.";
+                var res = "";
+                for (let i = 0; i < server_data.gameOver[1].length; i++) {
+                    if (i < server_data.gameOver[1].length - 1) {
+                        res = res + server_data.gameOver[1][i] + " and ";
+                    } else {
+                        res = res + server_data.gameOver[1][i];
+                    }
+                }
+                document.getElementById("round_winner").innerHTML = res + " WON!!! To play again, exit and create another room.";
                 document.getElementById("round_winner").style.backgroundColor = "gold";
                 document.getElementById("round_title").style.backgroundColor = "gold";
             } else {
@@ -265,9 +273,9 @@ function playGame_afterServerUpdate() { //called every second
                     }
                     alert('Your Turn');
                     user.yourTurn_FirstCall = false;
-                    console.log(user.cardPile);
-                    console.log("serv:");
-                    console.log(user.serverCardPile);
+                    //console.log(user.cardPile);
+                    //console.log("serv:");
+                    //console.log(user.serverCardPile);
                 }
 
                 if (user.hand.length === 0) {//ran out of cards...
@@ -416,6 +424,11 @@ function battleSandwich() { //if was not clients turn but decided to battle/sand
             let lastPlayedCard = lastPlay[0].substr(0, lastPlay[0].length - 1); //card value
             usersCard = parseInt(usersCard); //was string
             lastPlayedCard = parseInt(lastPlayedCard);  //was string
+            if (usersCard === 14) { //joker so change grab last num in div string and that is the card val chosen (options menu val)
+                usersCard = user.cardSelectedStack[0].split("_")[4].substr(0, user.cardSelectedStack[0].split("_")[4].length - 1); //card value
+                usersCard = parseInt(usersCard); //was string
+            }
+
             if (usersCard === lastPlayedCard) {
                 if (user.cardSelectedStack.length === lastPlay.length) {
                     user.isBattle_toServ = ["T", lastFoe]; //set flag to indicate battle order of play
@@ -490,7 +503,6 @@ function play() {
                         break; //the reason we loop instead of picking top of queue is because we only play against 'play' cards, not wild or fold cards.
                     }
                 }
-
                 if (user.cardPile.length === 0) { //(lastPlay === '') user is first to play this round so as long as user doesn't play more than 1 card he can play anything
                     if (user.cardSelectedStack.length > 1) { //cant start with a derby
                         playable = false;
@@ -501,13 +513,9 @@ function play() {
                     let lastPlayedCard = lastPlay[0].substr(0, lastPlay[0].length - 1); //card value
                     usersCard = parseInt(usersCard); //was string
                     lastPlayedCard = parseInt(lastPlayedCard);  //was string
-                    console.log("lp vs users: " + lastPlayedCard + " : " + usersCard + ".");
-                    if (usersCard === "14") {
-                        console.log("JKER val 14: " + user.cardSelectedStack[0].split("_")[4].substr(0, user.cardSelectedStack[0].split("_")[4].length - 1));
+                    if (usersCard === 14) { //joker so change grab last num in div string and that is the card val chosen (options menu val)
                         usersCard = user.cardSelectedStack[0].split("_")[4].substr(0, user.cardSelectedStack[0].split("_")[4].length - 1); //card value
-                    }
-                    if (usersCard === "14j") {
-                        console.log("JKER val 14j: " + user.cardSelectedStack[0].split("_")[4].substr(0, user.cardSelectedStack[0].split("_")[4].length - 1));
+                        usersCard = parseInt(usersCard); //was string
                     }
 
                     if (user.cardSelectedStack.length >= lastPlay.length && usersCard === 15) {
@@ -533,20 +541,17 @@ function play() {
                     } else if (user.cardSelectedStack.length > lastPlay.length && lastPlay.length > 1 ||
                                user.cardSelectedStack.length > lastPlay.length && lastPlay.length === 1 && user.higherIsBetter && usersCard >= lastPlayedCard ||
                                user.cardSelectedStack.length > lastPlay.length && lastPlay.length === 1 && !user.higherIsBetter && usersCard <= lastPlayedCard) {
-                        if (usersCard === lastPlayedCard) {
+                        if (usersCard === lastPlayedCard) { //valid
                             user.isSandwich_toServ = ["T", lastFoe];
                             alert("SANDWICH! And a DERBY!");
-                        } else {
-                            //valid
+                        } else { //valid
+                            user.isDerby_toServ = true; //set flag to indicate derby order of play
+                            if (!user.isDerby) {
+                                alert("DERBY!");
+                            }
                         }
-                    }
-                    if (playable && user.cardSelectedStack.length > 1) {
-                        user.isDerby_toServ = true; //set flag to indicate derby order of play
-                        if (!user.isDerby) {
-                            alert("DERBY!");
-                        }
-                    } else {
-                        //derby is false ... user.isDerby_toServ = false;
+                    } else { // should never get here...
+                        console.log("uh... ??");
                     }
                 } else {
                     //can play anything. ex. wild 9 to start, then someone can play anything they want
@@ -633,8 +638,12 @@ function autoPlay() {
         let randomCardNum = Math.floor((Math.random() * user.hand.length));
         if (user.isBattle) {
             user.playedMove_toServ = [[user.hand[randomCardNum]], 'play', user.username];
+            console.log("Auto Played in battle");
+            console.log(user.playedMove_toServ);
         } else { //normal
             user.playedMove_toServ = [[user.hand[randomCardNum]], 'fold', user.username];
+            console.log("Auto folded in battle");
+            console.log(user.playedMove_toServ);
         }
         resetSelected_AUTO(); //remove cards from cardSelectedStack after action
         removeSelectedFromHand(randomCardNum); //removes div/img from hand display given hand index and removes card from hand array []
@@ -668,8 +677,9 @@ function setHand() {
         card_IMG.setAttribute("height", "92"); //120
         card_IMG.style.padding = "0px 0px 0px 0px";
         card_IMG.style.margin = "5px 5px 5px 5px";
-        card_IMG.id = `hand_${j}_${user.hand[j]}`; // want to add "j" num into id because with multiple...
-        div_.id = `div_hand_${j}_${user.hand[j]}`; // decks could have same cards in hand = same ids = no no
+        card_IMG.id = `hand_${j}_${user.hand[j]}`;
+        div_.id = `div_hand_${j}_${user.hand[j]}`;
+        td_.id = `td_div_hand_${j}_${user.hand[j]}`;
         card_IMG.addEventListener("click", function(){cardsSelected(card_IMG.id, "")} );
         document.getElementById("hand_R").appendChild(td_).appendChild(div_).appendChild(card_IMG);
         if (user.hand[j] === "14j") {
@@ -713,8 +723,9 @@ function createMenu(div_) {
             //console.log( img_id.substr(0, img_id.length - l) );
             let new_id = img_id.substr(0, img_id.length - l) + "_" + option_val;
             //console.log("before : " + img_id);
-            document.getElementById(img_id).id = new_id; //set divs id to the new id so it
-            document.getElementById( "div_" + img_id ).id = "div_" + new_id; //set divs id to the new id so it
+            document.getElementById(img_id).id = new_id; //set divs id to the new id
+            document.getElementById( "div_" + img_id ).id = "div_" + new_id; //set divs id to the new id
+            document.getElementById( "td_div_" + img_id ).id = "td_div_" + new_id; //set the td id to the new id
             //console.log("option_val : " + option_val);
             //console.log("after : " + new_id);
             //console.log("- - - ... done CHANGE");
@@ -722,8 +733,9 @@ function createMenu(div_) {
         });
         //set div and img ids to have val "2s" as is in menu initially
         let img_ID = div_.id.substr(4); //gets img id, does not have "div_" in it
-        document.getElementById(img_ID).id = img_ID + "_2s"; //set img id to the new id so it
-        document.getElementById(div_.id).id = div_.id + "_2s"; //set divs id to the new id so it
+        document.getElementById(img_ID).id = img_ID + "_2s"; //set img id to the new id
+        document.getElementById(div_.id).id = div_.id + "_2s"; //set divs id to the new id
+        document.getElementById("td_div_" + img_ID).id = "td_div_" + img_ID + "_2s"; //set td id to the new id
 }
 
 
@@ -807,27 +819,27 @@ function resetSelected_AUTO() {
 function removeSelectedFromHand(ind) {
     if (ind === "") {
         for (let i = 0; i < user.cardSelectedStack.length; i++) {
-            console.log("removing... not auto");
-            console.log(user.cardSelectedStack[i]);
-            console.log(document.getElementById(user.cardSelectedStack[i]));
-            document.getElementById(user.cardSelectedStack[i]).remove(); //removes card from hand
+            document.getElementById("td_" + user.cardSelectedStack[i]).remove(); //removes td element so removes the td, div and card img from hand
         }
     } else { //called by auto_play
 
         console.log("AUTO REM");
         console.log(user.hand_toServ);
         console.log(user.hand);
+        console.log(ind);
+        console.log(document.getElementById("hand_R").children);
         console.log(document.getElementById("hand_R").children[ind]);
-        console.log(document.getElementById("hand_R").children[ind].children[0]);
+        console.log(document.getElementById("hand_R").children[ind].id);
+        console.log("- -");
 
-        let id = document.getElementById("hand_R").children[ind].children[0].id; //div id
-        document.getElementById("hand_R").children[ind].children[0].remove();
+        let id = document.getElementById("hand_R").children[ind].id; //td id
+        console.log(id);
+        document.getElementById("hand_R").children[ind].remove();
         user.hand.splice(ind, 1); //removes card from hand array
         user.hand_toServ = user.hand.slice(0); //dont touch the hand, make a copy and send that to serv, protect against race conditions
         console.log(user.hand);
         console.log(user.hand_toServ);
     }
-    //console.log("- - - ... end");
 }
 
 
@@ -1024,7 +1036,6 @@ function renderLastPlayed(last) {
     }
     else if (last[1] === 'pass') {
         //render nothing because player passed
-        //safs
     }
 }
 
