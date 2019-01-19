@@ -185,6 +185,7 @@ module.exports = app => {
                         let derbyOver = false;
                         let maybeWinner = ""; //won round
                         let isAce = false;
+                        let isRottenEgg = false;
                         let stillIn_count = 0;
                         if (!schema.isDerby) { //only set schema.isDerby if false, if schema.isDerby is true, want to keep it true until round ends
                             schema.isDerby = data.isDerby;
@@ -281,7 +282,7 @@ module.exports = app => {
                                         schema.markModified(`dict_varData.${resData[0][i][2]}`); //save
                                     }
                                     //wait for tied players to play their next battle moves
-                                } else if (resData[0].length == 0) { //everybody ran out of cards...
+                                } else if (resData[0].length == 0) { //everybody ran out of cards or rotten egg was played...
                                     battleOver = true;
                                     maybeWinner = "haha... no winner"; //won round
                                     console.log("won battle: " + maybeWinner);
@@ -333,6 +334,8 @@ module.exports = app => {
                                 schema.cardPile.unshift(data.usersMove); //put move on top of cardPile (in front of array)
                                 if (data.usersMove[1] === "play" && data.usersMove[0][0].substr(0,2) === "15") { //Ace was played so end round
                                     isAce = true; //only when not a battle and not a derby
+                                } else if (data.usersMove[1] === "play" && data.usersMove[0][0] === "69x") {
+                                    isRottenEgg = true;
                                 } else if (data.usersMove[1] === "wild") { //wild 9 was played, update higherIsBetter.
                                     if (data.usersMove[0][0] === "T") {
                                         schema.higherIsBetter = true;
@@ -351,6 +354,8 @@ module.exports = app => {
 
                                 if (isAce) { //ace was played outside of a battle
                                     maybeWinner = data.user;
+                                } else if (isRottenEgg) {
+                                    maybeWinner = "haha... no winner";
                                 } else { //see who is in to determine if the round continues
                                     //continue round?
                                     for (let key in schema.dict_varData) {
@@ -370,27 +375,47 @@ module.exports = app => {
 
                         //everything/code comes back here no matter if battle, derby or normal
                         if (!schema.isBattle || battleOver || derbyOver) { //only skip over this if in the middle of a battle
-                            if (stillIn_count === 1 || isAce || battleOver || derbyOver) { //round is over.
-                                //update score
+                            if (stillIn_count === 1 || isAce || isRottenEgg || battleOver || derbyOver) { //round is over.
                                 let card_count = 0;
-                                for (let x = 0; x < schema.cardPile.length; x++) { //only tally play, wild, and folded cards
-                                    if (schema.cardPile[x][1] === "play" || schema.cardPile[x][1] === "fold") {
-                                        card_count = card_count + schema.cardPile[x][0].length;
-                                    } else if (schema.cardPile[x][1] === "battle") {
-                                        for (let y = 0; y < schema.cardPile[x][0].length; y++) {
-                                            if (schema.cardPile[x][0][y][1] !== "outofcards") {
-                                                card_count = card_count + schema.cardPile[x][0][y][0].length; //num cards played per person in battle
+                                if (maybeWinner !== "haha... no winner") { //there maybe was a winner
+                                    //check for folded rotten egg
+                                    //let len = schema.cardPile.length; // otherwise will be an infinite loop if egg is found
+                                    for (let p = 0; p < schema.cardPile.length; p++) { //go thru all players
+                                        if (schema.cardPile[p][1] === "fold") { //this check speeds loop up
+                                            for (let x = 0; x < schema.cardPile[p][0].length; x++) { //go thru a// players played cards
+                                                if (schema.cardPile[p][0][x] === "69x") { //look for a folded rotten egg
+                                                    console.log("Folded Rotten egg!!");
+                                                    isRottenEgg = true;
+                                                    maybeWinner = "haha... no winner";
+                                                    schema.cardPile.unshift( [ ["69x"], 'play', schema.cardPile[p][2] ] ); //to show it was played
+                                                    break;
+                                                }
                                             }
                                         }
-                                    } else if (schema.cardPile[x][1] === "wild") {
-                                        card_count = card_count + 1;
+                                        if (isRottenEgg) {
+                                            break;
+                                        }
                                     }
-                                }
-                                if (maybeWinner !== "haha... no winner") {
-                                    schema.dict_varData[maybeWinner][3] = schema.dict_varData[maybeWinner][3] + card_count; //adds cards from battle to score
-                                    schema.markModified(`dict_varData.${maybeWinner}`); //save
+                                    if (!isRottenEgg) { //update score
+                                        for (let x = 0; x < schema.cardPile.length; x++) { //only tally play, wild, and folded cards
+                                            if (schema.cardPile[x][1] === "play" || schema.cardPile[x][1] === "fold") {
+                                                card_count = card_count + schema.cardPile[x][0].length;
+                                            } else if (schema.cardPile[x][1] === "battle") {
+                                                for (let y = 0; y < schema.cardPile[x][0].length; y++) {
+                                                    if (schema.cardPile[x][0][y][1] !== "outofcards") {
+                                                        card_count = card_count + schema.cardPile[x][0][y][0].length; //num cards played per person in battle
+                                                    }
+                                                }
+                                            } else if (schema.cardPile[x][1] === "wild") {
+                                                card_count = card_count + 1;
+                                            }
+                                        }
+                                        schema.dict_varData[maybeWinner][3] = schema.dict_varData[maybeWinner][3] + card_count; //adds cards from battle to score
+                                        schema.markModified(`dict_varData.${maybeWinner}`); //save
+                                    }
                                 } else { //there wasn't a winner...
                                     //dont update schema.dict_varData
+                                    console.log("Did not tally score bc no winner");
                                 }
 
                                 //refuel?
@@ -477,10 +502,19 @@ module.exports = app => {
 
                                 //Game not over...
                                 if (schema.gameOver[0] === "F") { //game is not over but round is, maybeWinner won round so he starts next round
-                                    schema.dict_varData[maybeWinner][2] = true;
-                                    console.log(maybeWinner + " won");
+                                    let toStart = maybeWinner;
+                                    console.log("Setting toStart");
+                                    if (maybeWinner === "haha... no winner") {
+                                        toStart = schema.players[Math.floor(Math.random()*schema.players.length)];
+                                    }
+                                    while (schema.dict_varData[toStart][0] <= 0 ) { //while that player is not out of the game (has cards)
+                                        toStart = orderOfPlay[toStart]; //look at next person in line
+                                        console.log("Player was out of the game already...");
+                                    } //this loop should always end since there are > 1 people with cards left in their hand
+                                    schema.dict_varData[toStart][2] = true;
+                                    console.log(toStart + " toStart");
                                 }
-                            } else if (!data.usersTurn && stillIn_count > 1) { // in normal mode, set next person's, whos still in, turn to true
+                            } else if (!data.usersTurn && stillIn_count > 1) { //Round not over, in normal mode, set next persons turn whos still in
                                 console.log("Next up...");
                                 //round is not over, if not a battle and cur player has played, find next person still in
                                 let next = schema.orderOfPlay[data.user];
@@ -709,6 +743,11 @@ function whoWonBattle(battleStack_Moves, higherIsBetter) {
             let curCard = plays[i][0][0]; //string ex. "12c"
             leadingCard = parseInt( leadingCard.substr(0, leadingCard.length - 1) ); //card value
             curCard = parseInt( curCard.substr(0, curCard.length - 1) ); //card value
+            if (curCard === 69 || leadingCard === 69) { //rotten egg was played
+                console.log("Rotten egg played in battle");
+                winner = [];
+                break;
+            }
             console.log(leadingCard);
             console.log(curCard);
             if ( (higherIsBetter && leadingCard < curCard) || (!higherIsBetter && leadingCard > curCard) ) {

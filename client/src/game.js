@@ -47,7 +47,6 @@ class Player {
         this.timerObj = {};
         this.chatList = [];
         this.end_round = "false";
-        this.serverCardPile = [];
     }
 }
 
@@ -212,9 +211,12 @@ function playGame_keepUpdatingFromServer() { //called every timestep (some amoun
             user.isDerby = server_data.isDerby;
             user.battleStack_Players = server_data.battleStack_Players;
             user.hand = server_data.hand; //update before setHand() below
-            user.serverCardPile = server_data.cardPile;
-            if (user.cardPile.length < server_data.cardPile.length) {
-                renderLastPlayed(server_data.cardPile[0]);
+            let len_servCP = server_data.cardPile.length;
+            let len_userCP = user.cardPile.length;
+            if (len_userCP < len_servCP) {
+                for (let i = 0; i < len_servCP - len_userCP; i++) {
+                    renderLastPlayed(server_data.cardPile[len_servCP - len_userCP - i - 1]);
+                }
             }
             if (server_data.end_round[0] === "true" && user.end_round === "false" && server_data.gameOver[0] !== "T") { //if incoming data is diff then update
                 endRound(server_data.end_round[1]);
@@ -273,9 +275,6 @@ function playGame_afterServerUpdate() { //called every second
                     }
                     alert('Your Turn');
                     user.yourTurn_FirstCall = false;
-                    //console.log(user.cardPile);
-                    //console.log("serv:");
-                    //console.log(user.serverCardPile);
                 }
 
                 if (user.hand.length === 0) {//ran out of cards...
@@ -518,8 +517,11 @@ function play() {
                         usersCard = parseInt(usersCard); //was string
                     }
 
-                    if (user.cardSelectedStack.length >= lastPlay.length && usersCard === 15) {
-                        //valid, ace/aces were played
+                    if ( (user.cardSelectedStack.length >= lastPlay.length && usersCard === 15) || (user.cardSelectedStack.length === 1 && usersCard === 69) ) {
+                        //valid, ace/aces were played or rotten egg was played
+                        if (usersCard === 69) {
+                            console.log("played ROTTEN EGG!");
+                        }
                     } else if (user.cardSelectedStack.length === lastPlay.length) {
                         if (user.higherIsBetter && usersCard > lastPlayedCard ) {
                             // valid
@@ -543,7 +545,7 @@ function play() {
                                user.cardSelectedStack.length > lastPlay.length && lastPlay.length === 1 && !user.higherIsBetter && usersCard <= lastPlayedCard) {
                         if (usersCard === lastPlayedCard) { //valid
                             user.isSandwich_toServ = ["T", lastFoe];
-                            alert("SANDWICH! And a DERBY!");
+                            alert("SANDWICH!");
                         } else { //valid
                             user.isDerby_toServ = true; //set flag to indicate derby order of play
                             if (!user.isDerby) {
@@ -660,23 +662,24 @@ function setHand() {
     let tr_ = document.createElement('tr');
     tr_.id = "hand_R";
     document.getElementById("hand_T").appendChild(tr_);
-    //found ourself in the list, now create divs with imgs for our hand
     for(let j = 0; j < user.hand.length; j++) { //loop thru players hand list
         let td_ = document.createElement("td");
         let div_ = document.createElement("div");
         div_.style.backgroundColor = "white";
-        //div_.style.width = "75px"; //90
-        //div_.style.height = "110px"; //150
+        div_.style.width = "75px"; //90
+        div_.style.height = "105px"; //150
         div_.style.color = "white";
         div_.style.textAlign = "center";
         div_.style.verticalAlign = "middle";
         div_.style.lineHeight = "10px";
+        //div_.className = "handDivs";
+        //div_.style.padding = "5px 9px 10px 9px";
         let card_IMG = document.createElement("IMG");
         card_IMG.setAttribute("src", `/images/${user.hand[j]}.png`);
         card_IMG.setAttribute("width", "65"); //80
         card_IMG.setAttribute("height", "92"); //120
-        card_IMG.style.padding = "0px 0px 0px 0px";
-        card_IMG.style.margin = "5px 5px 5px 5px";
+        //card_IMG.style.padding = "0px 0px 0px 0px";
+        card_IMG.style.margin = "3px 5px 2px 5px";
         card_IMG.id = `hand_${j}_${user.hand[j]}`;
         div_.id = `div_hand_${j}_${user.hand[j]}`;
         td_.id = `td_div_hand_${j}_${user.hand[j]}`;
@@ -703,7 +706,7 @@ function createMenu(div_) {
             {val : "11h", text: 'Jack'},
             {val : "12d", text: 'Queen'},
             {val : "13c", text: 'King'},
-            {val : "69", text: 'Rotten Egg'}, //if folded, whoever wins round doesn't get the points
+            {val : "69x", text: 'Rotten Egg'}, //has dummy 'x' in val because code parses all cards by truncating last char
         ];
 
         let sel = $('<select>').appendTo(div_);
@@ -712,23 +715,18 @@ function createMenu(div_) {
         });
 
         sel.on("change", function(event) {
-            //console.log("CHANGE ::");
             //let option_text = $(this).children("option:selected").text();
             //the whole point here is that we are re-assigning the div and img
             //ids to new ids so they represent a specific val/card instead of wild
             let option_val = $(this).children("option:selected").val();
             let img_id = $(this).parent().children(0).get(0).id;
             let l = img_id.split("_")[2].length;
-            //console.log(l);
-            //console.log( img_id.substr(0, img_id.length - l) );
+            //console.log("CHANGE :old: " + img_id);
             let new_id = img_id.substr(0, img_id.length - l) + "_" + option_val;
-            //console.log("before : " + img_id);
             document.getElementById(img_id).id = new_id; //set divs id to the new id
             document.getElementById( "div_" + img_id ).id = "div_" + new_id; //set divs id to the new id
             document.getElementById( "td_div_" + img_id ).id = "td_div_" + new_id; //set the td id to the new id
-            //console.log("option_val : " + option_val);
-            //console.log("after : " + new_id);
-            //console.log("- - - ... done CHANGE");
+            //console.log("CHANGE :new: " + new_id);
             cardsSelected(new_id, img_id);
         });
         //set div and img ids to have val "2s" as is in menu initially
@@ -795,10 +793,6 @@ function cardsSelected(img_ID, old_ID){
             user.cardSelectedStack_toServ[pos] = div_ID.split("_")[4]; //new joker value
         }
     }
-    //console.log("CSS After: ");
-    //console.log(user.cardSelectedStack);
-    //console.log(user.cardSelectedStack_toServ);
-    //console.log("- - - ...");
 }
 
 
@@ -822,23 +816,10 @@ function removeSelectedFromHand(ind) {
             document.getElementById("td_" + user.cardSelectedStack[i]).remove(); //removes td element so removes the td, div and card img from hand
         }
     } else { //called by auto_play
-
-        console.log("AUTO REM");
-        console.log(user.hand_toServ);
-        console.log(user.hand);
-        console.log(ind);
-        console.log(document.getElementById("hand_R").children);
-        console.log(document.getElementById("hand_R").children[ind]);
-        console.log(document.getElementById("hand_R").children[ind].id);
-        console.log("- -");
-
         let id = document.getElementById("hand_R").children[ind].id; //td id
-        console.log(id);
         document.getElementById("hand_R").children[ind].remove();
         user.hand.splice(ind, 1); //removes card from hand array
         user.hand_toServ = user.hand.slice(0); //dont touch the hand, make a copy and send that to serv, protect against race conditions
-        console.log(user.hand);
-        console.log(user.hand_toServ);
     }
 }
 
@@ -862,28 +843,27 @@ function resetCardPile() {
     document.getElementById('cardPile_T').appendChild(tr_);
 }
 
+
+function randomColor() { //for background of card img divs
+    let r1 = Math.floor((Math.random() * 255));
+    let r2 = Math.floor((Math.random() * 255));
+    let r3 = Math.floor((Math.random() * 255));
+    return "rgb(" + r1 + ", " + r2 + ", " + r3 + ")";
+}
+
+
 //after each play/on the incoming server to client update, displays last played card on top of pile
 function renderLastPlayed(last) {
     if (last[1] === 'play') { //create 1 dive that will be the background for however many cards were played each time
-        let r1 = Math.floor((Math.random() * 255));
-        let r2 = Math.floor((Math.random() * 255));
-        let r3 = Math.floor((Math.random() * 255));
         let td_ = document.createElement("td");
         let div_ = document.createElement("div");
-        div_.style.backgroundColor = "rgb("+ r1 +", "+ r2 +", "+ r3 +")";
-        //div_.className = "cardPileDivs";
-        div_.style.borderRadius = "20px";
-        div_.style.padding = "20px 10px 10px 10px";
-        div_.style.margin = "10px 5px 10px 5px";
-        div_.style.color = "white";
-        div_.style.verticalAlign = "middle";
-        div_.style.lineHeight = "20px";
+        div_.style.backgroundColor = randomColor();
+        div_.className = "cardPileDivs";
         td_.appendChild(div_);
         for(let j = 0; j < last[0].length; j++) {
             let card_IMG = document.createElement("IMG");
             card_IMG.setAttribute("src", `/images/${last[0][j]}.png`);
-            card_IMG.setAttribute("width", "65"); //80
-            card_IMG.setAttribute("height", "92"); //120
+            card_IMG.className = "cardPileImages";
             div_.appendChild(card_IMG);
         }
         let pileRow = document.getElementById("cardPileRow");
@@ -898,23 +878,13 @@ function renderLastPlayed(last) {
         if (!user.higherIsBetter) {
             wcard = "wild_L.jpg";
         }
-        let r1 = Math.floor((Math.random() * 255));
-        let r2 = Math.floor((Math.random() * 255));
-        let r3 = Math.floor((Math.random() * 255));
         let td_ = document.createElement("td");
         let div_ = document.createElement("div");
-        div_.style.backgroundColor = "rgb("+ r1 +", "+ r2 +", "+ r3 +")";
-        //div_.className = "cardPileDivs";
-        div_.style.borderRadius = "20px";
-        div_.style.padding = "20px 10px 10px 10px";
-        div_.style.margin = "10px 5px 10px 5px";
-        div_.style.color = "white";
-        div_.style.verticalAlign = "middle";
-        div_.style.lineHeight = "20px";
+        div_.style.backgroundColor = randomColor();
         let card_IMG = document.createElement("IMG");
         card_IMG.setAttribute("src", `/images/${wcard}`);
-        card_IMG.setAttribute("width", "65"); //80
-        card_IMG.setAttribute("height", "92"); //120
+        div_.className = "cardPileDivs";
+        card_IMG.className = "cardPileImages";
         let pileRow = document.getElementById("cardPileRow");
         td_.appendChild(div_);
         div_.appendChild(card_IMG);
@@ -924,25 +894,14 @@ function renderLastPlayed(last) {
         p.className = "pInDiv";
         p.appendChild(t);
         div_.appendChild(p);
-        //document.getElementById("cardPileRow").appendChild(td_).appendChild(div_).appendChild(card_IMG);
     } else if (last[1] === 'outofcards') {
-        let r1 = Math.floor((Math.random() * 255));
-        let r2 = Math.floor((Math.random() * 255));
-        let r3 = Math.floor((Math.random() * 255));
         let td_ = document.createElement("td");
         let div_ = document.createElement("div");
-        div_.style.backgroundColor = "rgb("+ r1 +", "+ r2 +", "+ r3 +")";
-        //div_.className = "cardPileDivs";
-        div_.style.borderRadius = "20px";
-        div_.style.padding = "20px 10px 10px 10px";
-        div_.style.margin = "10px 5px 10px 5px";
-        div_.style.color = "white";
-        div_.style.verticalAlign = "middle";
-        div_.style.lineHeight = "20px";
+        div_.style.backgroundColor = randomColor();
         let card_IMG = document.createElement("IMG");
         card_IMG.setAttribute("src", '/images/outofcards.png');
-        card_IMG.setAttribute("width", "65"); //80
-        card_IMG.setAttribute("height", "92"); //120
+        div_.className = "cardPileDivs";
+        card_IMG.className = "cardPileImages";
         let pileRow = document.getElementById("cardPileRow");
         td_.appendChild(div_);
         div_.appendChild(card_IMG);
@@ -952,26 +911,16 @@ function renderLastPlayed(last) {
         p.className = "pInDiv";
         p.appendChild(t);
         div_.appendChild(p);
-    } else if (last[1] === 'fold') { //create 1 dive that will be the background for however many cards were played each time
-        let r1 = Math.floor((Math.random() * 255));
-        let r2 = Math.floor((Math.random() * 255));
-        let r3 = Math.floor((Math.random() * 255));
+    } else if (last[1] === 'fold') {
         let td_ = document.createElement("td");
         let div_ = document.createElement("div");
-        div_.style.backgroundColor = "rgb("+ r1 +", "+ r2 +", "+ r3 +")";
-        //div_.className = "cardPileDivs";
-        div_.style.borderRadius = "20px";
-        div_.style.padding = "20px 10px 10px 10px";
-        div_.style.margin = "10px 5px 10px 5px";
-        div_.style.color = "white";
-        div_.style.verticalAlign = "middle";
-        div_.style.lineHeight = "20px";
+        div_.style.backgroundColor = randomColor();
+        div_.className = "cardPileDivs";
         td_.appendChild(div_);
         for(let j = 0; j < last[0].length; j++) {
             let card_IMG = document.createElement("IMG");
             card_IMG.setAttribute("src", `/images/fold.png`);
-            card_IMG.setAttribute("width", "65"); //80
-            card_IMG.setAttribute("height", "92"); //120
+            card_IMG.className = "cardPileImages";
             div_.appendChild(card_IMG);
         }
         let pileRow = document.getElementById("cardPileRow");
@@ -985,13 +934,7 @@ function renderLastPlayed(last) {
         let B_td_ = document.createElement("td");
         let B_div_ = document.createElement("div");
         B_div_.style.backgroundColor = "deepskyblue";
-        //B_div_.className = "cardPileDivs";
-        B_div_.style.borderRadius = "20px";
-        B_div_.style.padding = "20px 10px 10px 10px";
-        B_div_.style.margin = "10px 5px 10px 5px";
-        B_div_.style.color = "white";
-        B_div_.style.verticalAlign = "middle";
-        B_div_.style.lineHeight = "20px";
+        B_div_.className = "cardPileDivs";
         let pileRow = document.getElementById("cardPileRow");
         pileRow.insertBefore(B_td_, pileRow.firstChild);
         B_td_.appendChild(B_div_);
@@ -1000,26 +943,16 @@ function renderLastPlayed(last) {
         B_div_.appendChild(B_tabl);
         B_tabl.appendChild(B_row);
         for(let i = 0; i < last[0].length; i++) { // loops thru battle stack in last played move[0]
-            let r1 = Math.floor((Math.random() * 255));
-            let r2 = Math.floor((Math.random() * 255));
-            let r3 = Math.floor((Math.random() * 255));
             let td_ = document.createElement("td");
             let div_ = document.createElement("div");
-            div_.style.backgroundColor = "rgb("+ r1 +", "+ r2 +", "+ r3 +")";
-            //div_.className = "cardPileDivs";
-            div_.style.borderRadius = "20px";
-            div_.style.padding = "20px 10px 10px 10px";
-            div_.style.margin = "10px 5px 10px 5px";
-            div_.style.color = "white";
-            div_.style.verticalAlign = "middle";
-            div_.style.lineHeight = "20px";
+            div_.style.backgroundColor = randomColor();
+            div_.className = "cardPileDivs";
             B_row.appendChild(td_);
             td_.appendChild(div_);
             for(let j = 0; j < last[0][i][0].length; j++) { //if multiple cards were played by a single player
                 let card_IMG = document.createElement("IMG");
                 card_IMG.setAttribute("src", `/images/${ last[0][i][0][j] }.png`);
-                card_IMG.setAttribute("width", "65"); //80
-                card_IMG.setAttribute("height", "92"); //120
+                card_IMG.className = "cardPileImages";
                 div_.appendChild(card_IMG);
             }
             let p = document.createElement('P');
@@ -1033,9 +966,23 @@ function renderLastPlayed(last) {
         B_p.className = "pInDiv";
         B_p.appendChild(B_txt);
         B_div_.appendChild(B_p);
-    }
-    else if (last[1] === 'pass') {
-        //render nothing because player passed
+    } else if (last[1] === 'pass') {
+        let td_ = document.createElement("td");
+        let div_ = document.createElement("div");
+        div_.style.backgroundColor = randomColor();
+        let card_IMG = document.createElement("IMG");
+        card_IMG.setAttribute("src", '/images/pass.png');
+        div_.className = "cardPileDivs";
+        card_IMG.className = "cardPileImages";
+        let pileRow = document.getElementById("cardPileRow");
+        td_.appendChild(div_);
+        div_.appendChild(card_IMG);
+        pileRow.insertBefore(td_ , pileRow.firstChild);
+        let p = document.createElement('P');
+        let t = document.createTextNode(last[2]);
+        p.className = "pInDiv";
+        p.appendChild(t);
+        div_.appendChild(p);
     }
 }
 

@@ -1,3 +1,18 @@
+
+.cardPileDivs {
+    border-radius: 20px;
+    padding: 20px 10px 10px 10px;
+    margin: 10px 5px 10px 5px;
+    color: white;
+    vertical-align: middle;
+    line-height: 20px;
+}
+
+.cardPileImages {
+    width: 65px;
+    height: 92px;
+}
+
 .waitBoard {
     background-color: #EAA754;
     width: 100px;
@@ -37,22 +52,11 @@
 }
 */
 /*
-.cardPileDivs {
-    border-radius: 20px;
-    padding: 20 10 10 10px;
-    margin: 10 5 10 5px;
-    color: black;
-    vertical-align: middle;
-    line-height: 20px;
-    width: 85px;
-    height: 125px;
-}
-*/
-/*
 .pInDiv {
     color: black;
     padding: 0 0 0 0px;
     margin: 0 0 0 0px;
+    background-color: white;
 }
 */
 p {
