@@ -107,7 +107,8 @@ module.exports = app => {
                         startGame: schema.startGame,
                         dict_varData: schema.dict_varData,
                         chatList: schema.chatList,
-                        hand: schema.dict_hands[req.body.user]
+                        hand: schema.dict_hands[req.body.user],
+                        players: schema.players
                     });
                 }
             }
@@ -187,6 +188,8 @@ module.exports = app => {
                         let isAce = false;
                         let isRottenEgg = false;
                         let stillIn_count = 0;
+                        console.log("ENTERING SERVER::");
+                        console.log(data.usersMove);
                         if (!schema.isDerby) { //only set schema.isDerby if false, if schema.isDerby is true, want to keep it true until round ends
                             schema.isDerby = data.isDerby;
                         }
@@ -197,6 +200,7 @@ module.exports = app => {
                         schema.markModified(`dict_varData.${data.user}`); //save changes to dict_varData
 
                         if (data.isSandwich[0] === "T") {
+                            console.log("sandwich");
                             if (schema.isBattle) {
                                 for (let i = 0; i < schema.battleStack_Players.length; i++) {
                                     if (schema.battleStack_Players[i] !== data.user) {
@@ -252,7 +256,6 @@ module.exports = app => {
                                 schema.battleStack_Moves.push(data.usersMove); //add move to existing list of moves
                             }
                             console.log("in battle: " + data.user);
-                            console.log(data.usersMove);
 
                             //see who won battle, use short circuit eval because schema.battleStack[1] might not exist if a 3rd or more peeps join battle before
                             //any prev players played their batle moves
@@ -295,10 +298,12 @@ module.exports = app => {
                             //wait for all people in battle to play their moves
                         } else { //NOT A BATTLE, normal / Derby , one person plays at a time
                             if (schema.isDerby) {
+                                console.log("derby");
+                                console.log(data.usersMove);
+                                schema.cardPile.unshift(data.usersMove);
                                 if (data.usersMove[1] === "play") {
-                                    //schema.derbyLastPlay = data.usersMove[2]; //keep track of who "played" last, not "passed", never need to reset this value
-                                    schema.derbyLastPlay = data.user;
-                                    schema.cardPile.unshift(data.usersMove);
+                                    schema.derbyLastPlay = data.user; //keep track of who "played" last, not "passed", never need to reset this value
+                                    //schema.cardPile.unshift(data.usersMove);
                                 } else {
                                     //player passed
                                 }
@@ -337,7 +342,7 @@ module.exports = app => {
                                 } else if (data.usersMove[1] === "play" && data.usersMove[0][0] === "69x") {
                                     isRottenEgg = true;
                                 } else if (data.usersMove[1] === "wild") { //wild 9 was played, update higherIsBetter.
-                                    if (data.usersMove[0][0] === "T") {
+                                    if (data.usersMove[0][0] === "wild_H") {
                                         schema.higherIsBetter = true;
                                     } else {
                                         schema.higherIsBetter = false;
@@ -514,7 +519,7 @@ module.exports = app => {
                                     schema.dict_varData[toStart][2] = true;
                                     console.log(toStart + " toStart");
                                 }
-                            } else if (!data.usersTurn && stillIn_count > 1) { //Round not over, in normal mode, set next persons turn whos still in
+                            } else if (!data.usersTurn && stillIn_count > 1) { //Round not over. in normal mode. set next persons turn whos still in
                                 console.log("Next up...");
                                 //round is not over, if not a battle and cur player has played, find next person still in
                                 let next = schema.orderOfPlay[data.user];
@@ -528,10 +533,11 @@ module.exports = app => {
                                         next = schema.orderOfPlay[next]; //increment to next player
                                     }
                                 }
-                                if (data.user === next) {
-                                    console.log("SOMETHING IS WRONG");
-                                }
+                                //if (data.user === next) { console.log("someone else should still be in... something is wrong"); }
                             } else {
+                                console.log("uhhh...");
+                                console.log(data.usersTurn);
+                                console.log(data.usersMove);
                                 console.log("uhhh...");
                             }
                         } else {
@@ -658,14 +664,14 @@ function makeDeck(numDecks) {
     let newDeck = [];
     let sumDeck = [];
     //14 is for the 2 jokers
-    /*
+
     let deck = ['2c', '2d', '2h', '2s', '3c', '3d', '3h', '3s', '4c', '4d', '4h', '4s', '5c', '5d', '5h',
     '5s', '6c', '6d', '6h', '6s', '7c', '7d', '7h', '7s', '8c', '8d', '8h', '8s', '9c', '9d', '9h', '9s', '10c', '10d', '10h',
     '10s', '11c', '11d', '11h', '11s', '12c', '12d', '12h', '12s', '13c', '13d', '13h', '13s', '14j', '14j', '15c', '15d', '15h', '15s'];
-    */
 
-    //length = 18
-    let deck = ['11h', '11s', '12c', '12d', '12h', '12s', '13c', '13d', '13h', '13s', '14j', '14j'];
+
+    //length = 12
+    //let deck = ['11h', '11s', '12c', '12d', '12h', '12s', '13c', '13d', '13h', '13s', '14j', '14j'];
 
     for (let i = 0; i < numDecks; i++) {
         sumDeck = sumDeck.concat(deck);
@@ -716,7 +722,7 @@ function whoWonBattle(battleStack_Moves, higherIsBetter) {
             plays.push(battleStack_Moves[i]); //
         } else if (battleStack_Moves[i][1] === "wild") { //wild 9 was played, update higherIsBetter.
             console.log("wild 9 was played in battle " + battleStack_Moves[i][2]);
-            if (battleStack_Moves[i][0][0] === "T") {
+            if (battleStack_Moves[i][0][0] === "wild_H") {
                 higherIsBetter = true;
             } else {
                 higherIsBetter = false;
@@ -750,7 +756,9 @@ function whoWonBattle(battleStack_Moves, higherIsBetter) {
             }
             console.log(leadingCard);
             console.log(curCard);
-            if ( (higherIsBetter && leadingCard < curCard) || (!higherIsBetter && leadingCard > curCard) ) {
+            if ( (higherIsBetter && leadingCard < curCard) ||
+                 (!higherIsBetter && leadingCard > curCard && leadingCard !== 15) ||
+                 (!higherIsBetter && leadingCard < curCard && curCard === 15) ) {
                 winner = [plays[i]];
                 console.log("new leader");
                 console.log(winner);
