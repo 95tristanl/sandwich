@@ -64,7 +64,7 @@
                 </div>
             </td>
             <td>
-                <div class="info">
+                <div class="info" id="hisb">
                     <p id="value">Higher</p>
                     <p>is Better</p>
                 </div>
@@ -72,11 +72,9 @@
             <td>
                 <div class="info" id="clock_text">Timer:</div>
             </td>
-            <!--
             <td>
-                <div class="info" id="clock">30</div>
+                <div class="info" id="clock">60</div>
             </td>
-            -->
         </tr>
     </table>
 
@@ -89,11 +87,6 @@
             <td>
                 <div id="cardPile_title"><h1 id="cardPile_h">Card Pile:</h1></div>
             </td>
-            <!-- Here for now... -->
-            <td>
-                <div class="info" id="clock">60</div>
-            </td>
-            <!-- Here for now... -->
             <td>
                 <div id="round_title"><h1 id="round_winner"></h1></div>
             </td>
@@ -140,7 +133,7 @@
     <div>
         <div>
             <form id="chat_form">
-                <input id="chat_input" name="msg" placeholder=" secret messege" />
+                <input id="chat_input" name="msg" placeholder=" chat messege" />
                 <button class="bottons" id="chat_botton" onclick="sendChatMessege(event, this.form)">Send Messege</button>
             </form>
         </div>

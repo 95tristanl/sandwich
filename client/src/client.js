@@ -11,13 +11,46 @@ var roomID = "No_Room_ID";
 function createNewGameRoom(event, form) {
     event.preventDefault();
 
-    if (!form.username_c.value || !form.roomID_c.value) {
-        alert('Please enter a username and password.');
+    if (form.username_c.value.match(/^[a-zA-Z0-9]{3,15}$/) ) {
+        //valid
+    } else {
+        alert("Username must only contain letters and numbers and must be 3-15 characters!");
         return;
     }
 
-    if ( !form.deckSize.value || !form.gameSize.value || !form.handSize.value) {
-        alert('fill in all boxes');
+    if (form.roomID_c.value.match(/^[a-zA-Z0-9]{5,20}$/) ) {
+        //valid
+    } else {
+        alert("RoomID must only contain letters and numbers and must be 5-20 characters!");
+        return;
+    }
+
+    if (form.gameSize.value.match(/^[1-9]{1,2}$/) && parseInt(form.gameSize.value) >= 2 && parseInt(form.gameSize.value) <= 30) {
+        //valid
+    } else {
+        alert("Game size must only contain numbers and be between 2 and 30!");
+        return;
+    }
+
+    if (form.deckSize.value.match(/^[1-9]{1,2}$/) && parseInt(form.deckSize.value) >= 1 && parseInt(form.deckSize.value) <= 20) {
+        //valid
+    } else {
+        alert("Deck number must only contain numbers and be between 1 and 20!");
+        return;
+    }
+
+    if (form.handSize.value.match(/^[1-9]{1,2}$/) && parseInt(form.handSize.value) >= 1 && parseInt(form.handSize.value) <= 20) {
+        //valid
+    } else {
+        alert("Hand size must only contain numbers and be between 1 and 20!");
+        return;
+    }
+
+    if (form.refuelNum.value.match(/^[0-9]{1,2}$/) && parseInt(form.refuelNum.value) >= 0 &&
+        parseInt(form.refuelNum.value) < parseInt(form.handSize.value)) {
+        //valid
+    } else {
+        alert("Refuel number must only contain numbers and be 0 or greater and less than the hand size!");
         return;
     }
 
@@ -40,6 +73,7 @@ function createNewGameRoom(event, form) {
         function(data, status) {
             if (status === 'success') {
                 roomID = form.roomID_c.value;
+                localStorage.setItem('onTheClock', "F"); //setting timer obj for when its your turn to false (you are not being timed to play yet)
                 localStorage.setItem('curUser', curUser); // Persists to browser storage
                 location.assign("/gamePage.html?roomID=" + form.roomID_c.value);
             }
@@ -52,8 +86,17 @@ function createNewGameRoom(event, form) {
 function joinGameRoom(event, form) {
     event.preventDefault();
 
-    if (!form.username_j.value || !form.roomID_j.value) {
-        alert('Please enter a username and password.');
+    if (form.username_j.value.match(/^[a-zA-Z0-9]{3,15}$/) ) {
+        //valid
+    } else {
+        alert("Username must only contain letters and numbers and must be 3-15 characters!");
+        return;
+    }
+
+    if (form.roomID_j.value.match(/^[a-zA-Z0-9]{5,20}$/) ) {
+        //valid
+    } else {
+        alert("RoomID must only contain letters and numbers and must be 5-20 characters!");
         return;
     }
 
@@ -70,6 +113,7 @@ function joinGameRoom(event, form) {
         },
         success: function (data) {
             roomID = form.roomID_j.value;
+            localStorage.setItem('onTheClock', "F"); //setting timer obj for when its your turn to false (you are not being timed to play yet)
             localStorage.setItem('curUser', curUser); // Persists to browser storage
             location.assign("/gamePage.html?roomID=" + form.roomID_j.value);
         },
@@ -79,52 +123,3 @@ function joinGameRoom(event, form) {
         }
     });
 }
-
-
-
-/*
-// Create a new game. Emit newGame event.
-$('#new').on('click', () => {
-    const lord = $('#username_c').val();
-    const roomID = $('#roomCode_create').val();
-    const gameSize = $('#gameSize').val();
-    const decks = $('#decksUsed').val();
-    const handSize = $('#handSize').val();
-    const refuleNum = $('#refuleNum').val();
-    if (!name) {
-        alert('Please enter your name.');
-        return;
-    }
-    if (!roomID) {
-        alert('Please enter a room password.');
-        return;
-    }
-    if ( ((54*decks)/gameSize) < handSize ) {
-        alert('Yeah, try again, the math does not add up here...');
-        return;
-    }
-    cGame = new Game(lord, roomID, gameSize, decks, handSize, refuleNum);
-});
-*/
-
-
-// Join an existing game on the entered roomId. Emit the joinGame event.
-/*
-$('#join').on('click', () => {
-    const name = $('#username_j').val();
-    const roomID = $('#roomCode_join').val();
-    if (!name || !roomID) {
-        alert('Please enter your name and game ID.');
-        return;
-    }
-    socket.emit('joinGame', { name, room: roomID });
-    player = new Player(name, P2);
-    //console.log("yo1");
-    //console.log(io.nsps['/'].adapter.rooms[roomID].gameObj.lord);
-    //console.log("yo2");
-    //console.log(io.nsps['/'].adapter.rooms[roomID].gameObj);
-    //console.log("yo3");
-    //console.log(io.nsps['/'].adapter.rooms[roomID]);
-    //console.log("yo4");
-});
-*/

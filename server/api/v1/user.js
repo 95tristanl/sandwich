@@ -199,7 +199,9 @@ module.exports = app => {
                         schema.dict_varData[data.user][2] = data.usersTurn; //update turn index of dict_varData for user
                         schema.markModified(`dict_varData.${data.user}`); //save changes to dict_varData
 
-                        if (data.isSandwich[0] === "T") {
+                        if (data.isSandwich[0] === "T") { //person just sandwiched another person   incoming data has isDerby set to true
+                            schema.dict_varData[data.user][2] = false; //set the persons turn to false since he just played
+                            schema.markModified(`dict_varData.${data.user}`);
                             console.log("sandwich");
                             if (schema.isBattle) {
                                 for (let i = 0; i < schema.battleStack_Players.length; i++) {
@@ -223,7 +225,7 @@ module.exports = app => {
                                 schema.dict_varData[data.isSandwich[1]][1] = false; //that person was sandwiched so is no longer in round
                                 schema.markModified(`dict_varData.${data.isSandwich[1]}`);
                             }
-                        }
+                        } //cHANGED THIS RIGHT HERE!
 
                         if (!schema.isBattle && data.isBattle[0] === "T") { //BATTLE, person who just played initiated a battle
                             schema.isBattle = (data.isBattle[0] === "T");
@@ -315,18 +317,22 @@ module.exports = app => {
                                     //ace so ends round, skips over check below
                                     console.log("Multi ACE!");
                                 } else {
+                                    console.log("next up");
                                     let next = schema.orderOfPlay[data.user];
+                                    console.log(next);
                                     while (data.user !== next) { //went in a circle so exit loop, next person should have been found
                                         if (schema.dict_varData[next][1] === true) { //found next player who is still in
                                             //if derby and next person up is also the last person who "played" and not "passed", round is over
                                             if (schema.derbyLastPlay === next) {
+                                                console.log("next up was you... went in circle");
                                                 break; //derbyOver = true, ends round by breaking before looping to person who is still in but passed
-                                            } else { //found next player who is still in who did not play the last played hand
-                                                aFlag = false;
-                                                schema.dict_varData[next][2] = true;
-                                                schema.markModified(`dict_varData.${next}`);
-                                                break;
-                                            }
+                                            } //else { //found next player who is still in who did not play the last played hand
+                                            aFlag = false;
+                                            schema.dict_varData[next][2] = true;
+                                            schema.markModified(`dict_varData.${next}`);
+                                            console.log("next up: " + next);
+                                            break;
+                                            //}
                                         } else {
                                             next = schema.orderOfPlay[next]; //increment to next player
                                         }
@@ -519,11 +525,11 @@ module.exports = app => {
                                     schema.dict_varData[toStart][2] = true;
                                     console.log(toStart + " toStart");
                                 }
-                            } else if (!data.usersTurn && stillIn_count > 1) { //Round not over. in normal mode. set next persons turn whos still in
+                            } else if (!data.usersTurn && stillIn_count > 1 && !schema.isDerby) { //Round not over. in normal mode. set next persons turn whos still in
                                 console.log("Next up...");
                                 //round is not over, if not a battle and cur player has played, find next person still in
                                 let next = schema.orderOfPlay[data.user];
-                                while (data.user != next) { //went in a circle so exit loop, next person should have been found
+                                while (data.user !== next) { //went in a circle so exit loop, next person should have been found
                                     if (schema.dict_varData[next][1] === true) { //found next player who is still in
                                         schema.dict_varData[next][2] = true;
                                         schema.markModified(`dict_varData.${next}`);
@@ -533,12 +539,14 @@ module.exports = app => {
                                         next = schema.orderOfPlay[next]; //increment to next player
                                     }
                                 }
-                                //if (data.user === next) { console.log("someone else should still be in... something is wrong"); }
+                                if (data.user === next) {
+                                    console.log("someone else should still be in... something is wrong");
+                                }
                             } else {
-                                console.log("uhhh...");
+                                console.log("Derby still going");
                                 console.log(data.usersTurn);
                                 console.log(data.usersMove);
-                                console.log("uhhh...");
+                                console.log("der ...");
                             }
                         } else {
                             //battle isn't over...

@@ -120,9 +120,12 @@ window.onload = () => {
                     document.getElementById('startGameButton').style.display = "block"; //display button
                 }
 
-                if (user.startGame) {
+                if (user.startGame) { //also init timer stuff
+                    console.log("startGame!");
+                    user.timerObj.timeoutNum = 40000; //40 seconds to play
+                    console.log(localStorage.getItem('onTheClock'));
+                    console.log("- - -");
                     clearInterval(waitToStartGame_interv); //interval is stopped -> startGame is true -> everyone is here and lord pressed start button
-
                     setHand();
                     user.timerObj.keepUpdating = setInterval(playGame_keepUpdatingFromServer, 1000); //this starts game. goes every sec
                 }
@@ -157,10 +160,14 @@ function scoreboard(server_dict_varData) {
     if (!user.isBattle && !user.isDerby && pt_div.style.backgroundColor !== "limegreen") { //normal
         pt_div.style.backgroundColor = "limegreen";
         pt_div.innerHTML = "Normal";
-    } else if (user.isDerby && user.isBattle && pt_div.innerHTML !== "Derby<br />Battle!!!") {
+    }
+    /*
+    else if (user.isDerby && user.isBattle && pt_div.innerHTML !== "Derby<br />Battle!!!") {
         pt_div.style.backgroundColor = "pink";
         pt_div.innerHTML = "Derby" + "<br />" + "Battle!!!";
-    } else if (user.isBattle && !user.isDerby && pt_div.innerHTML !== "Battle!!") {
+    }
+    */
+    else if (user.isBattle && pt_div.innerHTML !== "Battle!!") {
         pt_div.style.backgroundColor = "deepskyblue";
         pt_div.innerHTML = "Battle!!";
     } else if (user.isDerby && !user.isBattle && pt_div.innerHTML !== "Derby!") {
@@ -168,8 +175,7 @@ function scoreboard(server_dict_varData) {
         pt_div.innerHTML = "Derby!";
     }
 
-    for (let key in user.dict_varData) {
-        //still in update
+    for (let key in user.dict_varData) { //still in update
         if (server_dict_varData[key][1] !== user.dict_varData[key][1]) {
             let div_ = document.getElementById("sb_" + key);
             if (server_dict_varData[key][1]) {
@@ -212,8 +218,10 @@ function playGame_keepUpdatingFromServer() { //called every timestep (some amoun
                 user.higherIsBetter = server_data.higherIsBetter;
                 if (server_data.higherIsBetter) {
                     document.getElementById("value").innerHTML = "Higher";
+                    document.getElementById("hisb").style.backgroundColor = "#EAA754";
                 } else {
                     document.getElementById("value").innerHTML = "Lower";
+                    document.getElementById("hisb").style.backgroundColor = "pink";
                 }
             }
             user.isBattle = server_data.isBattle;
@@ -225,6 +233,10 @@ function playGame_keepUpdatingFromServer() { //called every timestep (some amoun
             if (len_userCP < len_servCP) {
                 for (let i = 0; i < len_servCP - len_userCP; i++) {
                     renderLastPlayed(server_data.cardPile[len_servCP - len_userCP - i - 1]);
+                }
+                if (user.yourTurn && !user.yourTurn_FirstCall) { //restart timer because someone else played while it was your turn
+                    console.log("- RESET TIMER -");
+                    user.timerObj.startTimeMS = Math.round( ((new Date()).getTime())/1000 );
                 }
             }
             if (server_data.end_round[0] === "true" && user.end_round === "false" && server_data.gameOver[0] !== "T") { //if incoming data is diff then update
@@ -263,6 +275,8 @@ function playGame_keepUpdatingFromServer() { //called every timestep (some amoun
 
 //continuous functionality of client if its his turn or not
 function playGame_afterServerUpdate() { //called every second
+    //console.log("playing...");
+    //console.log(localStorage.getItem('onTheClock'));
     if(user.end_round === "false") { //instead of using a while loop, use an interval
         //toggle display of action buttons if user is still in or not
         if (user.stillIn) {
@@ -274,14 +288,20 @@ function playGame_afterServerUpdate() { //called every second
             if (user.yourTurn) {
                 if (user.yourTurn_FirstCall) { //the first and only time this will execute when its your turn
                     // - - - TIMER STUFF ***
-                    //start timer obj
-                    user.timerObj.timeoutNum = 61000; //61 seconds to play
-                    user.timerObj.startTimeMS = Math.round( ((new Date()).getTime())/1000 );
-                    //user.timerObj.timeoutVar = setTimeout(autoPlay, user.timerObj.timeoutNum); //31 seconds
-                    // - - - TIMER STUFF ***
-                    if (user.isBattle) {
-                        //alert("BATTLE!");
+                    //user.timerObj.timeoutNum = 31000; //31 seconds to play
+                    if (localStorage.getItem('onTheClock') === "T") { //exitted window or something ... ? bc 'onTheClock' should be false at this point
+                        user.timerObj.startTimeMS = localStorage.getItem('start_time');
+                        //console.log("Going to locStorage to get start time");
+                    } else { //normal flow path if you havent left window/browser page
+                        localStorage.setItem('onTheClock', "T"); // Persists to browser storage
+                        //console.log(".");
+                        //console.log(localStorage.getItem('onTheClock'));
+                        user.timerObj.startTimeMS = Math.round( ((new Date()).getTime())/1000 ); //start timer
+                        localStorage.setItem('start_time', user.timerObj.startTimeMS);
+                        //console.log(".     reg time");
                     }
+                    // - - - TIMER STUFF ***
+
                     //alert('Your Turn');
                     user.yourTurn_FirstCall = false;
                 }
@@ -313,6 +333,15 @@ function playGame_afterServerUpdate() { //called every second
                             break;
                         }
                     }
+
+                    if (user.isDerby && !user.isBattle) { //derby
+                        document.getElementById("foldButton").style.display = "none";
+                        document.getElementById("passButton").style.display = "block";
+                    } else { //normal or battle
+                        document.getElementById("foldButton").style.display = "block";
+                        document.getElementById("passButton").style.display = "none";
+                    }
+                    /*
                     if (lastPlay === '' || lastPlay.length === 1) {
                         document.getElementById("foldButton").style.display = "block";
                         document.getElementById("passButton").style.display = "none";
@@ -320,6 +349,7 @@ function playGame_afterServerUpdate() { //called every second
                         document.getElementById("foldButton").style.display = "none";
                         document.getElementById("passButton").style.display = "block";
                     }
+                    */
                 }
 
                 let divClock = document.getElementById("clock");
@@ -343,14 +373,15 @@ function playGame_afterServerUpdate() { //called every second
                         //clearTimeout(user.timerObj.timeoutVar); //stop timer
                         //alert("Auto played, you ran out of time.");
                         divClock.style.backgroundColor = "white";
-                        divClock.innerHTML = 60;
+                        divClock.innerHTML = 40;
                         autoPlay();
                     }
                     // - - - TIMER STUFF ***
                 } else { //played
-                    if (divClock.style.backgroundColor !== "white" || divClock.innerHTML !== 60) { // reset clock
+                    localStorage.setItem('onTheClock', "F"); //you are no longer on the clock
+                    if (divClock.style.backgroundColor !== "white" || divClock.innerHTML !== 40) { // reset clock
                         divClock.style.backgroundColor = "white";
-                        divClock.innerHTML = 60;
+                        divClock.innerHTML = 40;
                     }
                     user.yourTurn = false; //reset turn bool
                     user.hasPlayed = false; //reset hasPlayed bool
@@ -375,12 +406,13 @@ function playGame_afterServerUpdate() { //called every second
                             user.isSandwich_toServ = ["F", ""];
                     });
                 }
-            } else { //not your turn so wait
+            } else { //not your turn so wait or could have gotten sandwiched to get to this path
+                localStorage.setItem('onTheClock', "F"); //you are no longer on the clock
                 user.yourTurn_FirstCall = true;
                 let divClock = document.getElementById("clock");
-                if (divClock.style.backgroundColor !== "white" || divClock.innerHTML !== 60) { // reset clock
+                if (divClock.style.backgroundColor !== "white" || divClock.innerHTML !== 40) { // reset clock
                     divClock.style.backgroundColor = "white";
-                    divClock.innerHTML = 60;
+                    divClock.innerHTML = 40;
                 }
                 if (user.battleStack_Players.indexOf(user.username) >= 0) { //if user is already playing in a battle, remove the battle button
                     document.getElementById("battleButton").style.display = "none";
@@ -619,10 +651,14 @@ function pass() {
 
 //displays folded cards on pile, hill only happen/appear if user is still in and its not a Derby
 function fold() {
-    user.playedMove_toServ = [user.cardSelectedStack_toServ, 'fold', user.username];
-    removeSelectedFromHand(""); //removes card from hand
-    resetSelected(); //remove cards from cardSelectedStack after action
-    user.hasPlayed = true;
+    if (user.cardSelectedStack_toServ.length > 0) {
+        user.playedMove_toServ = [user.cardSelectedStack_toServ, 'fold', user.username];
+        removeSelectedFromHand(""); //removes card from hand
+        resetSelected(); //remove cards from cardSelectedStack after action
+        user.hasPlayed = true;
+    } else {
+        alert("You need to select a card to fold.");
+    }
 }
 
 
@@ -751,18 +787,34 @@ function createMenu(div_) {
         });
 
         sel.on("change", function(event) {
-            //let option_text = $(this).children("option:selected").text();
-            //the whole point here is that we are re-assigning the div and img
-            //ids to new ids so they represent a specific val/card instead of wild
             let option_val = $(this).children("option:selected").val();
             let img_id = $(this).parent().children(0).get(0).id;
-            let l = img_id.split("_")[2].length;
+            let l = 0;
             console.log("CHANGE :old: " + img_id);
-            let new_id = img_id.substr(0, img_id.length - l) + "_" + option_val;
+            if (img_id.split("_").length === 4) { //joker
+                l = img_id.split("_")[3].length;
+            } //else if (img_id.split("_").length === 3) { //non joker
+                //l = img_id.split("_")[2].length;
+                //let option_text = $(this).children("option:selected").text();
+                //the whole point here is that we are re-assigning the div and img
+                //ids to new ids so they represent a specific val/card instead of wild
+                //let option_val = $(this).children("option:selected").val();
+                //let img_id = $(this).parent().children(0).get(0).id;
+                //let l = img_id.split("_")[2].length;
+                //let new_id = img_id.substr(0, img_id.length - l) + "_" + option_val;
+                //document.getElementById(img_id).id = new_id; //set divs id to the new id
+                //document.getElementById( "div_" + img_id ).id = "div_" + new_id; //set divs id to the new id
+                //document.getElementById( "td_div_" + img_id ).id = "td_div_" + new_id; //set the td id to the new id
+                //console.log("CHANGE :new: " + new_id);
+                //console.log(" - - - ");
+                //cardsSelected(new_id, img_id);
+            //}
+            let new_id = img_id.substr(0, img_id.length - l - 1) + "_" + option_val;
             document.getElementById(img_id).id = new_id; //set divs id to the new id
             document.getElementById( "div_" + img_id ).id = "div_" + new_id; //set divs id to the new id
             document.getElementById( "td_div_" + img_id ).id = "td_div_" + new_id; //set the td id to the new id
             console.log("CHANGE :new: " + new_id);
+            console.log("- - -");
             cardsSelected(new_id, img_id);
         });
         //set div and img ids to have val "2s" as is in menu initially
@@ -793,15 +845,15 @@ function cardsSelected(img_ID, old_ID){
         if ( pos >= 0 ) { //if the id is in the array, its already selected, so UNhighlight it
             if (img.indexOf('9', 0) >= 0 && user.cardSelectedStack.length === 1 ) { //selected card was a 9 not from joker
                 document.getElementById("nineButton").style.display = "none";
-                //console.log("9 wild gone...");
             }
             d.style.backgroundColor = "white";
             user.cardSelectedStack.splice(pos, 1);
             user.cardSelectedStack_toServ.splice(pos, 1); //has same functionality as cardSelectedStack
         } else { //if its not in the array then Highlight the card and add it to the array
             if (img.indexOf('9', 0) >= 0 && user.cardSelectedStack.length === 0) { //only selected card is a 9 not from joker
-                document.getElementById("nineButton").style.display = "block";
-                //console.log("9 wild IN");
+                if (user.yourTurn) {
+                    document.getElementById("nineButton").style.display = "block";
+                }
             }
             //console.log(img);
             if (img === "14j") {
@@ -818,9 +870,9 @@ function cardsSelected(img_ID, old_ID){
             document.getElementById("nineButton").style.display = "none";
             //console.log("9 wild gone...");
         } else if (user.cardSelectedStack.length === 1 && user.cardSelectedStack[0].split("_")[3].indexOf('9', 0) >= 0) {
-            //only selected card is a 9 (not from joker)
-            document.getElementById("nineButton").style.display = "block";
-            //console.log("9 wild IN");
+            if (user.yourTurn) {
+                document.getElementById("nineButton").style.display = "block";
+            }
         }
     } else { //here bc card is joker options change. Find and change the old joker id to new id
         pos = user.cardSelectedStack.indexOf("div_" + old_ID); //pos of old joker id

@@ -21,9 +21,12 @@
           <input type="text" name="gameSize" placeholder="Game size" required>
           <input type="text" name="deckSize" placeholder="Deck number" required>
           <input type="text" name="handSize" placeholder="Hand size" required>
-          <input type="text" name="refuelNum" placeholder="Card amount at which one refules" required>
+          <input type="text" name="refuelNum" placeholder="Refuel number" required>
           <button id="new" onclick="createNewGameRoom(event, this.form)">New Game</button>
       </form>
+      <h5>You can play with multiple decks within reason. Each deck is 54 cards (+2 jokers).</h5>
+      <h5>Game size is the amount of players that are going to play.</h5>
+      <h5>Refuel number is the amount of cards in your hand when refueling occurs from the deck.</h5>
 
       <br><br>
       <h4>Join an existing game</h4>
@@ -33,20 +36,6 @@
           <button id="join" onclick="joinGameRoom(event, this.form)">Join Game</button>
       </form>
   </div>
-
-<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
-<!-- Above is for lobby, below is for game room -->
-<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
-
-  <!--
-  <div >
-      <div>
-          <img id="1" src="/images/1.png" onclick="console.log(this.id)" draggable="false"/>
-          <img id="8" src="/images/8.png" onclick="console.log(this.id)" draggable="false"/>
-          <img id="10" src="/images/10.png" onclick="console.log(this.id)" draggable="false"/>
-      </div>
-  </div>
-  -->
 
 <!-- <script src="/socket.io/socket.io.js"></script> -->
 <script src="src/client.js"></script>
