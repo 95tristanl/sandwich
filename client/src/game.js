@@ -27,8 +27,7 @@ class Player {
         this.playedMove_toServ = []; //a tmp var that is used to send the played move of user to server
         this.cardPile = []; //playing pile an array of arrays, usually each is an array having a single card item, Derby items have multiple cards
         this.cardsInDeck = -1; //amount of cards still in the deck
-        this.stillIn = true; //are you still in the round
-        this.yourTurn = false; //is it your turn to play
+        //this.yourTurn = false; //is it your turn to play
         this.yourTurn_FirstCall = true; //keeps track of first time the interval is called during a players turn
         this.hasPlayed = false; //user has played or not
         this.higherIsBetter = true; //higher cards are better
@@ -234,7 +233,7 @@ function playGame_keepUpdatingFromServer() { //called every timestep (some amoun
                 for (let i = 0; i < len_servCP - len_userCP; i++) {
                     renderLastPlayed(server_data.cardPile[len_servCP - len_userCP - i - 1]);
                 }
-                if (user.yourTurn && !user.yourTurn_FirstCall) { //restart timer because someone else played while it was your turn
+                if (user.dict_varData[user.username][2] && !user.yourTurn_FirstCall) { //restart timer because someone else played while it was your turn
                     console.log("- RESET TIMER -");
                     user.timerObj.startTimeMS = Math.round( ((new Date()).getTime())/1000 );
                 }
@@ -245,7 +244,7 @@ function playGame_keepUpdatingFromServer() { //called every timestep (some amoun
             user.cardPile = server_data.cardPile;
             scoreboard(server_data.dict_varData); // update displays of each players: handSize, stillIn, yourTurn, score
             user.dict_varData = server_data.dict_varData;
-            user.yourTurn = server_data.dict_varData[user.username][2]; //updates if its your turn
+            //user.yourTurn = server_data.dict_varData[user.username][2]; //updates if its your turn
             if (user.cardsInDeck !== server_data.cardsInDeck) {
                 user.cardsInDeck = server_data.cardsInDeck;
                 document.getElementById("cardDeck").innerHTML = user.cardsInDeck; //display num cards left in deck
@@ -278,14 +277,8 @@ function playGame_afterServerUpdate() { //called every second
     //console.log("playing...");
     //console.log(localStorage.getItem('onTheClock'));
     if(user.end_round === "false") { //instead of using a while loop, use an interval
-        //toggle display of action buttons if user is still in or not
-        if (user.stillIn) {
-            document.getElementById("foldButton").style.display = "none";
-            document.getElementById("passButton").style.display = "none";
-            document.getElementById("playButton").style.display = "none";
-            document.getElementById("battleButton").style.display = "block";
-
-            if (user.yourTurn) {
+        if (user.dict_varData[user.username][1]) { // user still in?
+            if (user.dict_varData[user.username][2]) {
                 if (user.yourTurn_FirstCall) { //the first and only time this will execute when its your turn
                     // - - - TIMER STUFF ***
                     //user.timerObj.timeoutNum = 31000; //31 seconds to play
@@ -321,35 +314,20 @@ function playGame_afterServerUpdate() { //called every second
                         console.log("Normal ran out of cards");
                     }
                 } else if (user.hand.length > 0) {
-                    document.getElementById("battleButton").style.display = "none"; //only show when not your turn
                     document.getElementById("playButton").style.display = "block";
-                    document.getElementById("foldButton").style.display = "block";
-                    document.getElementById("passButton").style.display = "none";
-
-                    let lastPlay = '';
-                    for (let i = 0; i < user.cardPile.length; i++) {
-                        if (user.cardPile[i][1] === 'play') { //the card(s) that the user must beat
-                            lastPlay = user.cardPile[i][0];
-                            break;
-                        }
-                    }
-
                     if (user.isDerby && !user.isBattle) { //derby
                         document.getElementById("foldButton").style.display = "none";
                         document.getElementById("passButton").style.display = "block";
-                    } else { //normal or battle
-                        document.getElementById("foldButton").style.display = "block";
-                        document.getElementById("passButton").style.display = "none";
-                    }
-                    /*
-                    if (lastPlay === '' || lastPlay.length === 1) {
-                        document.getElementById("foldButton").style.display = "block";
-                        document.getElementById("passButton").style.display = "none";
-                    } else if (lastPlay.length > 1) { //derby
+                        document.getElementById("battleButton").style.display = "none";
+                    } else if (user.isBattle) {
                         document.getElementById("foldButton").style.display = "none";
-                        document.getElementById("passButton").style.display = "block";
+                        document.getElementById("passButton").style.display = "none";
+                        document.getElementById("battleButton").style.display = "block";
+                    } else { //normal
+                        document.getElementById("foldButton").style.display = "block";
+                        document.getElementById("passButton").style.display = "none";
+                        document.getElementById("battleButton").style.display = "none";
                     }
-                    */
                 }
 
                 let divClock = document.getElementById("clock");
@@ -377,13 +355,18 @@ function playGame_afterServerUpdate() { //called every second
                         autoPlay();
                     }
                     // - - - TIMER STUFF ***
+
                 } else { //played
+                    document.getElementById("foldButton").style.display = "none";
+                    document.getElementById("passButton").style.display = "none";
+                    document.getElementById("playButton").style.display = "none";
+                    document.getElementById("battleButton").style.display = "none";
                     localStorage.setItem('onTheClock', "F"); //you are no longer on the clock
                     if (divClock.style.backgroundColor !== "white" || divClock.innerHTML !== 40) { // reset clock
                         divClock.style.backgroundColor = "white";
                         divClock.innerHTML = 40;
                     }
-                    user.yourTurn = false; //reset turn bool
+                    //user.yourTurn = false; //reset turn bool
                     user.hasPlayed = false; //reset hasPlayed bool
                     user.yourTurn_FirstCall = true;
                     let post_obj = {};
@@ -391,7 +374,7 @@ function playGame_afterServerUpdate() { //called every second
                     post_obj.user = user.username;
                     post_obj.usersHand = user.hand_toServ;
                     post_obj.usersMove = user.playedMove_toServ;
-                    post_obj.usersTurn = user.yourTurn;
+                    //post_obj.usersTurn = user.yourTurn;
                     post_obj.isBattle = user.isBattle_toServ;
                     post_obj.isSandwich = user.isSandwich_toServ;
                     post_obj.isDerby = user.isDerby_toServ;
@@ -414,18 +397,30 @@ function playGame_afterServerUpdate() { //called every second
                     divClock.style.backgroundColor = "white";
                     divClock.innerHTML = 40;
                 }
+                /*
                 if (user.battleStack_Players.indexOf(user.username) >= 0) { //if user is already playing in a battle, remove the battle button
                     document.getElementById("battleButton").style.display = "none";
                 } else {
                     document.getElementById("battleButton").style.display = "block";
                 }
+                */
+                document.getElementById("foldButton").style.display = "none";
+                document.getElementById("passButton").style.display = "none";
+                document.getElementById("playButton").style.display = "none";
+                document.getElementById("battleButton").style.display = "block";
             }
         } else { //not in round
+            user.yourTurn_FirstCall = true;
+            let divClock = document.getElementById("clock");
+            if (divClock.style.backgroundColor !== "white" || divClock.innerHTML !== 40) { // reset clock
+                divClock.style.backgroundColor = "white";
+                divClock.innerHTML = 40;
+            }
             document.getElementById("foldButton").style.display = "none";
             document.getElementById("passButton").style.display = "none";
             document.getElementById("playButton").style.display = "none";
             document.getElementById("battleButton").style.display = "none";
-            document.getElementById("nineButton").style.display = "none";
+            //document.getElementById("nineButton").style.display = "none";
         }
     } else if (user.gameOver[0] === "T") { //game is over
         console.log("Game is over!");
@@ -460,6 +455,7 @@ function battleSandwich() { //if was not clients turn but decided to battle/sand
         for (let i = 0; i < user.cardPile.length; i++) {
             if (user.cardPile[i][1] === 'play') { //the card(s) that the user must beat
                 lastPlay = user.cardPile[i][0];
+                console.log("lastPlay" + lastPlay);
                 lastFoe = user.cardPile[i][2];
                 break; //the reason we loop instead of picking top of queue is because we only play against 'play' cards, not wild or fold cards.
             }
@@ -481,7 +477,12 @@ function battleSandwich() { //if was not clients turn but decided to battle/sand
             }
 
             if (usersCard === lastPlayedCard) {
-                if (user.cardSelectedStack.length === lastPlay.length) {
+                console.log(user.isBattle);
+                if (user.isBattle && user.cardSelectedStack.length >= lastPlay.length) { //sandwich during a battle
+                    console.log("SAND!");
+                    user.isSandwich_toServ = ["T", lastFoe];
+                    user.isDerby_toServ = true;
+                } else if (user.cardSelectedStack.length === lastPlay.length) {
                     user.isBattle_toServ = ["T", lastFoe]; //set flag to indicate battle order of play
                     //alert("BATTLE!"); // valid, BATTLE
                 } else if (user.cardSelectedStack.length < lastPlay.length) {
@@ -489,10 +490,7 @@ function battleSandwich() { //if was not clients turn but decided to battle/sand
                     alert("Its a Derby. You need to play more cards!");
                 } else if (user.cardSelectedStack.length > lastPlay.length) {
                     user.isSandwich_toServ = ["T", lastFoe];
-                    //alert("SANDWICH! ... DERBY!");
-                }
-                if (playable && user.cardSelectedStack.length > 1) {
-                    user.isDerby_toServ = true; //set flag to indicate derby order of play
+                    user.isDerby_toServ = true;
                 }
             } else {
                 playable = false; // not valid battle
@@ -503,18 +501,18 @@ function battleSandwich() { //if was not clients turn but decided to battle/sand
         playable = false; // not valid
         alert("Cannot play different types of cards!");
     }
+
     if (playable) {
         removeSelectedFromHand("");
         user.playedMove_toServ = [user.cardSelectedStack_toServ, 'play', user.username]; //going to serv
         resetSelected(); //remove cards from cardSelectedStack after action
-        user.stillIn = true;
-        user.yourTurn = true; //reset turn bool
+        //user.yourTurn = true; //reset turn bool
         let post_obj = {};
         post_obj.roomID = roomID;
         post_obj.user = user.username;
         post_obj.usersHand = user.hand_toServ;
         post_obj.usersMove = user.playedMove_toServ;
-        post_obj.usersTurn = user.yourTurn;
+        //post_obj.usersTurn = user.yourTurn;
         post_obj.isBattle = user.isBattle_toServ;
         post_obj.isSandwich = user.isSandwich_toServ;
         post_obj.isDerby = user.isDerby_toServ;
@@ -534,7 +532,7 @@ function battleSandwich() { //if was not clients turn but decided to battle/sand
 
 //user has pressed the play button, display selected hand cards in pile
 function play() {
-    if (user.yourTurn) { // Validation below
+    if (user.dict_varData[user.username][2]) { //your turn?  Validation below
         let playable = true;
         let lastPlay = '';
         let lastFoe = '';
@@ -550,6 +548,7 @@ function play() {
                 for (let i = 0; i < user.cardPile.length; i++) {
                     if (user.cardPile[i][1] === 'play') { //the card(s) that the user must beat
                         lastPlay = user.cardPile[i][0];
+                        console.log("lastPlay" + lastPlay);
                         lastFoe = user.cardPile[i][2];
                         break; //the reason we loop instead of picking top of queue is because we only play against 'play' cards, not wild or fold cards.
                     }
@@ -595,14 +594,9 @@ function play() {
                     } else if (user.cardSelectedStack.length > lastPlay.length && lastPlay.length > 1 ||
                                user.cardSelectedStack.length > lastPlay.length && lastPlay.length === 1 && user.higherIsBetter && usersCard >= lastPlayedCard ||
                                user.cardSelectedStack.length > lastPlay.length && lastPlay.length === 1 && !user.higherIsBetter && usersCard <= lastPlayedCard) {
+                        user.isDerby_toServ = true;
                         if (usersCard === lastPlayedCard) { //valid
                             user.isSandwich_toServ = ["T", lastFoe];
-                            //alert("SANDWICH!");
-                        } else { //valid
-                            user.isDerby_toServ = true; //set flag to indicate derby order of play
-                            if (!user.isDerby) {
-                                //alert("DERBY!");
-                            }
                         }
                     } else { // should never get here...
                         playable = false; // not valid
@@ -615,7 +609,6 @@ function play() {
                             console.log(usersCard);
                             console.log(lastPlayedCard);
                         }
-
                     }
                 } else {
                     //can play anything. ex. wild 9 to start, then someone can play anything they want
@@ -631,7 +624,6 @@ function play() {
             user.playedMove_toServ = [user.cardSelectedStack_toServ, 'play', user.username]; //going to serv
             resetSelected(); //remove cards from cardSelectedStack after action
             user.hasPlayed = true;
-            user.stillIn = true;
         }
     } else {
         //cant play bc not your turn...
@@ -644,7 +636,6 @@ function pass() {
         user.playedMove_toServ = [['pass'], 'pass', user.username];
         resetSelected(); //remove cards from cardSelectedStack after action
         user.hasPlayed = true;
-        user.stillIn = true;
     }
 }
 
@@ -665,7 +656,7 @@ function fold() {
 //if 9 is chossen to be played as a wild card 9
 function nine() {
     let isHigher = user.higherIsBetter
-    if (user.yourTurn) {
+    if (user.dict_varData[user.username][2]) {
         let lastPlay = '';
         for (let i = 0; i < user.cardPile.length; i++) {
             if (user.cardPile[i][1] === 'play') { //the card(s) that the user must beat
@@ -673,7 +664,7 @@ function nine() {
                 break;
             }
         }
-        if (lastPlay === '' || lastPlay.length === 1) { //not a derby
+        if ( (user.isDerby && user.isBattle) || (!user.isDerby) ) { //not a derby
             if (isHigher) {
                 document.getElementById("value").innerHTML = "Lower";
                 isHigher = "wild_L";
@@ -685,7 +676,6 @@ function nine() {
             user.playedMove_toServ = [[isHigher], 'wild', user.username];
             resetSelected(); //remove cards from cardSelectedStack and hand array after action
             document.getElementById("nineButton").style.display = "none";
-            user.stillIn = true; //out of round
             user.hasPlayed = true;
         } else {
             alert("9 is NOT PLAYABLE, its a DERBY...");
@@ -700,22 +690,20 @@ function nine() {
 //player ran out of time so auto play for them: if Derby => pass, otherwise => fold
 function autoPlay() {
     resetSelected_AUTO(); //remove cards from cardSelectedStack after action
-    if (user.isDerby) { //is Derby so pass
+    if (user.isDerby && !user.isBattle) { //is Derby so pass
         user.playedMove_toServ = [['pass'], 'pass', user.username];
-        user.stillIn = true; //out of round
     } else { //fold because its normal play
         let randomCardNum = Math.floor((Math.random() * user.hand.length));
         if (user.isBattle) {
             user.playedMove_toServ = [[user.hand[randomCardNum]], 'play', user.username];
-            console.log("Auto Played in battle");
-            console.log(user.playedMove_toServ);
+            //console.log("Auto Played in battle");
+            //console.log(user.playedMove_toServ);
         } else { //normal
             user.playedMove_toServ = [[user.hand[randomCardNum]], 'fold', user.username];
-            console.log("Auto folded in battle");
-            console.log(user.playedMove_toServ);
+            //console.log("Auto folded in battle");
+            //console.log(user.playedMove_toServ);
         }
         removeSelectedFromHand(randomCardNum); //removes div/img from hand display given hand index and removes card from hand array []
-        //user.stillIn = false; //out of round
     }
     user.hasPlayed = true;
     //alert('Auto Played. You ran out of time.');
@@ -790,7 +778,7 @@ function createMenu(div_) {
             let option_val = $(this).children("option:selected").val();
             let img_id = $(this).parent().children(0).get(0).id;
             let l = 0;
-            console.log("CHANGE :old: " + img_id);
+            //console.log("CHANGE :old: " + img_id);
             if (img_id.split("_").length === 4) { //joker
                 l = img_id.split("_")[3].length;
             } //else if (img_id.split("_").length === 3) { //non joker
@@ -813,8 +801,8 @@ function createMenu(div_) {
             document.getElementById(img_id).id = new_id; //set divs id to the new id
             document.getElementById( "div_" + img_id ).id = "div_" + new_id; //set divs id to the new id
             document.getElementById( "td_div_" + img_id ).id = "td_div_" + new_id; //set the td id to the new id
-            console.log("CHANGE :new: " + new_id);
-            console.log("- - -");
+            //console.log("CHANGE :new: " + new_id);
+            //console.log("- - -");
             cardsSelected(new_id, img_id);
         });
         //set div and img ids to have val "2s" as is in menu initially
@@ -833,6 +821,23 @@ function createMenu(div_) {
 //is selected, so have to change the id instead of a push or pop
 // ex div joker id: div_hand_12_14j_2s
 function cardsSelected(img_ID, old_ID){
+
+    /*
+    let sandwichButtonFlag = false;
+    lastPlay = '';
+    if (user.isBattle && user.yourTurn) {
+        sandwichButtonFlag = true;
+        for (let i = 0; i < user.cardPile.length; i++) {
+            if (user.cardPile[i][1] === 'play') { //the card(s) that the user must beat
+                lastPlay = user.cardPile[i][0];
+                console.log("looking to sandwich" + lastPlay);
+                break; //the reason we loop instead of picking top of queue is because we only play against 'play' cards, not wild or fold cards.
+            }
+        }
+    }
+    */
+
+
     //console.log("CSS BEFORE: ");
     //console.log(user.cardSelectedStack);
     //console.log(user.cardSelectedStack_toServ);
@@ -846,23 +851,37 @@ function cardsSelected(img_ID, old_ID){
             if (img.indexOf('9', 0) >= 0 && user.cardSelectedStack.length === 1 ) { //selected card was a 9 not from joker
                 document.getElementById("nineButton").style.display = "none";
             }
+            /*
+            else if (sandwichButtonFlag && lastPlay === img) {
+                document.getElementById("battleButton").style.display = "none";
+            }
+            */
+            //console.log("unsel: " + img);
             d.style.backgroundColor = "white";
             user.cardSelectedStack.splice(pos, 1);
             user.cardSelectedStack_toServ.splice(pos, 1); //has same functionality as cardSelectedStack
         } else { //if its not in the array then Highlight the card and add it to the array
             if (img.indexOf('9', 0) >= 0 && user.cardSelectedStack.length === 0) { //only selected card is a 9 not from joker
-                if (user.yourTurn) {
+                if (user.dict_varData[user.username][2] && ((user.isDerby && user.isBattle) || (!user.isDerby)) ) {
                     document.getElementById("nineButton").style.display = "block";
                 }
             }
             //console.log(img);
             if (img === "14j") {
-                //console.log("JOKER!");
-                user.cardSelectedStack_toServ.push(div_ID.split("_")[4]); //img from joker
+                console.log("sel: JOKER!");
+                img = div_ID.split("_")[4];
+                user.cardSelectedStack_toServ.push(img); //img from joker div_ID.split("_")[4]
             } else {
                 //console.log("not a JOKER");
                 user.cardSelectedStack_toServ.push(img); //non joker img
             }
+            /*
+            console.log("sel card: " + img);
+            if (sandwichButtonFlag && lastPlay === img) {
+                document.getElementById("battleButton").style.display = "block";
+            }
+            */
+
             d.style.backgroundColor = "blue";
             user.cardSelectedStack.push(div_ID);
         }
@@ -870,16 +889,30 @@ function cardsSelected(img_ID, old_ID){
             document.getElementById("nineButton").style.display = "none";
             //console.log("9 wild gone...");
         } else if (user.cardSelectedStack.length === 1 && user.cardSelectedStack[0].split("_")[3].indexOf('9', 0) >= 0) {
-            if (user.yourTurn) {
+            if (user.dict_varData[user.username][2] && ((user.isDerby && user.isBattle) || (!user.isDerby)) ) {
                 document.getElementById("nineButton").style.display = "block";
             }
         }
     } else { //here bc card is joker options change. Find and change the old joker id to new id
+        /*
+        old_img = old_ID.split("_")[2];
+        console.log("old card: " + old_img);
+        if (sandwichButtonFlag && lastPlay === old_img) {
+            document.getElementById("battleButton").style.display = "none";
+        }
+        */
         pos = user.cardSelectedStack.indexOf("div_" + old_ID); //pos of old joker id
         if (pos >= 0) {
             user.cardSelectedStack[pos] = div_ID; //replace with new id
-            user.cardSelectedStack_toServ[pos] = div_ID.split("_")[4]; //new joker value
+            new_img = div_ID.split("_")[4];
+            user.cardSelectedStack_toServ[pos] = new_img; //new joker value
         }
+        /*
+        console.log("change card: " + new_img);
+        if (sandwichButtonFlag && lastPlay === new_img) {
+            document.getElementById("battleButton").style.display = "block";
+        }
+        */
     }
 }
 
@@ -899,14 +932,14 @@ function resetSelected_AUTO() {
 //for once a user plays his selected cards, want to reset
 //auto_play gives a param index so can delete that card from hand array and the div/img from hand display
 function removeSelectedFromHand(ind) {
-    console.log("REMOVING SFH");
-    console.log(ind);
-    console.log(user.cardSelectedStack);
-    console.log(user.hand);
-    console.log("- - -");
+    //console.log("REMOVING SFH");
+    //console.log(ind);
+    //console.log(user.cardSelectedStack);
+    //console.log(user.hand);
+    //console.log("- - -");
     if (ind === "") {
         for (let i = 0; i < user.cardSelectedStack.length; i++) {
-            console.log("td_" + user.cardSelectedStack[i]);
+            //console.log("td_" + user.cardSelectedStack[i]);
             document.getElementById("td_" + user.cardSelectedStack[i]).remove(); //removes td element so removes the td, div and card img from hand
         }
     } else { //called by auto_play
