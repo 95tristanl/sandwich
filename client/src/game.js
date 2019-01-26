@@ -18,36 +18,38 @@ so circle: server (data)-> client,    if clients turn/turn just finishes (data)-
 
 class Player {
     constructor(username) {
+        //nums and strings
         this.lord = "";
         this.username = username; //your username
+        this.refuelNum = 0;
+        this.score = 0; //how many cards have you won
+        this.cardsInDeck = -1; //amount of cards still in the deck
+        this.gameSize = -1;
+        //arrays
+        this.players = [];
         this.hand = []; //the cards in your hand
         this.hand_toServ = [];
         this.cardSelectedStack = []; //cards selected in his hand (list of img ids)
         this.cardSelectedStack_toServ = []; //same as cardSelectedStack but just img string, not entire div or hand string
         this.playedMove_toServ = []; //a tmp var that is used to send the played move of user to server
         this.cardPile = []; //playing pile an array of arrays, usually each is an array having a single card item, Derby items have multiple cards
-        this.cardsInDeck = -1; //amount of cards still in the deck
-        //this.yourTurn = false; //is it your turn to play
+        this.battleStack_Players = [];
+        this.chatList = [];
+        //objects
+        this.dict_varData = {}; // dict of users , user : [handSize, stillIn, yourTurn, score]
+        this.timerObj = {};
+        //bools
+        this.startGame = false;
+        this.higherIsBetter = true; //higher cards are better
         this.yourTurn_FirstCall = true; //keeps track of first time the interval is called during a players turn
         this.hasPlayed = false; //user has played or not
-        this.higherIsBetter = true; //higher cards are better
-        this.startGame = false;
-        this.gameOver = ["F", ""];
         this.isBattle = false;
         this.isDerby = false;
         this.isDerby_toServ = false;
         this.isBattle_toServ = ["F", ""];
         this.isSandwich_toServ = ["F", ""];
-        this.battleStack_Players = [];
-        this.score = 0; //how many cards have you won
-        this.gameSize = -1;
-        this.dict_varData = {}; // dict of users , user : [handSize, stillIn, yourTurn, score]
-        this.refuelNum = 0;
-        this.timerObj = {};
-        this.chatList = [];
         this.end_round = "false";
-        this.pp = false;
-        this.players = [];
+        this.gameOver = ["F", ""];
     }
 }
 
@@ -87,7 +89,6 @@ window.onload = () => {
                     user.players = data.players;
                     user.refuelNum = data.refuelNum;
                     user.gameSize = data.gameSize;
-                    //user.startGame = data.startGame;
                     user.dict_varData = data.dict_varData;
                     document.getElementById("peeps_R").remove();
                     let tr_ = document.createElement('tr');
@@ -120,10 +121,7 @@ window.onload = () => {
                 }
 
                 if (user.startGame) { //also init timer stuff
-                    console.log("startGame!");
                     user.timerObj.timeoutNum = 40000; //40 seconds to play
-                    console.log(localStorage.getItem('onTheClock'));
-                    console.log("- - -");
                     clearInterval(waitToStartGame_interv); //interval is stopped -> startGame is true -> everyone is here and lord pressed start button
                     setHand();
                     user.timerObj.keepUpdating = setInterval(playGame_keepUpdatingFromServer, 1000); //this starts game. goes every sec
@@ -448,6 +446,14 @@ function allSame() {
 
 //only seen when you are in but its not your turn but could be if you came in to battle or sandwhich someone
 function battleSandwich() { //if was not clients turn but decided to battle/sandwhich
+    let inBattle = false;
+    console.log(user.battleStack_Players);
+    for (let i = 0; i < user.battleStack_Players.length; i++) { //see if player is already participating in battle
+        if (user.username === user.battleStack_Players[i]) {
+            inBattle = true;
+            break;
+        }
+    }
     let playable = true;
     let lastPlay = '';
     let lastFoe = '';
@@ -478,13 +484,12 @@ function battleSandwich() { //if was not clients turn but decided to battle/sand
 
             if (usersCard === lastPlayedCard) {
                 console.log(user.isBattle);
-                if (user.isBattle && user.cardSelectedStack.length >= lastPlay.length) { //sandwich during a battle
+                if (inBattle) { //already in the battle, and then you play the same card again so its a sandwich
                     console.log("SAND!");
                     user.isSandwich_toServ = ["T", lastFoe];
-                    user.isDerby_toServ = true;
+                    //user.isDerby_toServ = true;
                 } else if (user.cardSelectedStack.length === lastPlay.length) {
                     user.isBattle_toServ = ["T", lastFoe]; //set flag to indicate battle order of play
-                    //alert("BATTLE!"); // valid, BATTLE
                 } else if (user.cardSelectedStack.length < lastPlay.length) {
                     playable = false; // not valid
                     alert("Its a Derby. You need to play more cards!");

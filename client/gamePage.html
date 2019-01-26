@@ -10,12 +10,13 @@
 <body class="container-fluid" id="html_body">
 
     <ul id="nav_ul">
-        <li class="nav_li" id="color0"><h1 class="nav_h1">Trump Game Room</h1></li>
-        <li class="nav_li" id="color1"><h1 class="nav_h1">Play</h1></li>
-        <li class="nav_li" id="color2"><h1 class="nav_h1">Pass</h1></li>
-        <li class="nav_li" id="color3"><h1 class="nav_h1">Battle</h1></li>
-        <li class="nav_li" id="color4"><h1 class="nav_h1">Derby</h1></li>
-        <li class="nav_li" id="color5"><h1 class="nav_h1">Fold</h1></li>
+        <li class="nav_li" id="color_title"><h1 class="nav_h1">Trump Game Room</h1></li>
+        <li class="nav_li" id="color_egg"><h1 class="nav_h1">Egg</h1></li>
+        <li class="nav_li" id="color_fold"><h1 class="nav_h1">Fold</h1></li>
+        <li class="nav_li" id="color_play"><h1 class="nav_h1">Play</h1></li>
+        <li class="nav_li" id="color_battle"><h1 class="nav_h1">Battle</h1></li>
+        <li class="nav_li" id="color_derby"><h1 class="nav_h1">Derby</h1></li>
+        <li class="nav_li" id="color_pass"><h1 class="nav_h1">Pass</h1></li>
     </ul>
 
     <table>
@@ -103,6 +104,10 @@
         <table>
             <tr>
                 <td>
+                    <!-- can only be seen and clicked on by the lord if everyone has joined -->
+                    <button class="bottons" id="startGameButton" onclick="startGame_justLord(event)">Start Game !</button>
+                </td>
+                <td>
                     <button class="bottons" id="playButton" onclick="play(event)">PLAYYY</button>
                 </td>
                 <td>
@@ -126,9 +131,6 @@
     <table id="hand_T">
         <tr id="hand_R"></tr>
     </table>
-
-    <!-- can only be seen and clicked on by the lord if everyone has joined -->
-    <button class="bottons" id="startGameButton" onclick="startGame_justLord(event)">Start Game !</button>
 
     <div>
         <div>

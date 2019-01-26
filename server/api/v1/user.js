@@ -252,8 +252,8 @@ module.exports = app => {
                             }
                             //update battleStack with players battling
                             //schema.battleStack.push([data.user, data.isBattle[1]]); //new battler with no move played yet
-                            schema.battleStack_Players.push(data.user);
-                            schema.battleStack_Players.push(data.isBattle[1]);
+                            schema.battleStack_Players.push(data.user); //guy who played
+                            schema.battleStack_Players.push(data.isBattle[1]); //prev guy who played
                             schema.cardPile.unshift(data.usersMove); //put move on top of cardPile (in front of array)
                             //now wait for both of them to play their moves then show both
 

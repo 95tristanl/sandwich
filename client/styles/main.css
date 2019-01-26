@@ -82,27 +82,31 @@ p {
     padding: 0px 20px;
 }
 
-#color0 {
+#color_title {
     background-color: #EAA754;
 }
 
-#color1 {
+#color_egg {
+    background-color: #EEE5E9;
+}
+
+#color_fold {
     background-color: #FE3D20;
 }
 
-#color2 {
+#color_play {
     background-color: #6DF260;
 }
 
-#color3 {
+#color_battle {
     background-color: #4392F1;
 }
 
-#color4 {
+#color_derby {
     background-color: #9800FF;
 }
 
-#color5 {
+#color_pass {
     background-color: #EAA754;
 }
 
