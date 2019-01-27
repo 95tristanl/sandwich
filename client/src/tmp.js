@@ -1,11 +1,18 @@
 
 
 function tmp() {
+
     let a = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k"];
-    let b = a.slice(0);
+    a = a.slice();
+    //let b = a.slice();
+    //a = a.splice(1);
+    //let c = ["1", "2"];
+    //let d = ["3"];
 
 
-    console.log( Math.floor( Math.random() * 2 ) );
+    //console.log( Math.floor( Math.random() * 2 ) );
+    console.log(a);
+    //console.log(a);
 }
 
 

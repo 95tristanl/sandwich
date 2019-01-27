@@ -190,8 +190,6 @@ module.exports = app => {
                         let stillIn_count = 0;
                         console.log("ENTERING SERVER:: " + data.user);
                         console.log(schema.dict_varData);
-                        console.log(schema.isDerby);
-                        console.log(data.isDerby);
                         console.log(data.usersMove);
                         if (!schema.isDerby) { //only set schema.isDerby if false, if schema.isDerby is true, want to keep it true until round ends
                             schema.isDerby = data.isDerby;
@@ -207,10 +205,8 @@ module.exports = app => {
                             schema.markModified(`dict_varData.${data.user}`);
                             console.log("sandwich");
                             if (schema.isBattle) {
-                                console.log(data.isBattle[0]);
                                 for (let i = 0; i < schema.battleStack_Players.length; i++) {
                                     if (schema.battleStack_Players[i] !== data.user) {
-                                        console.log(schema.battleStack_Players[i]);
                                         schema.dict_varData[schema.battleStack_Players[i]][2] = false; //not their turn anymore
                                         schema.dict_varData[schema.battleStack_Players[i]][1] = false; //that person was sandwiched so is no longer in round
                                         schema.markModified(`dict_varData.${schema.battleStack_Players[i]}`);
@@ -226,10 +222,12 @@ module.exports = app => {
                                     schema.cardPile.unshift(schema.battleStack_Moves[i]); //add lost cards to pile
                                 }
 
+                                data.usersMove[3] = ['S', schema.battleStack_Players.slice()]; //store replica in move
                                 schema.isBattle = false; //no longer a battle since everyone in it was sandwiched
                                 schema.battleStack_Players = []; //reset battleStack
                                 schema.battleStack_Moves = []; //reset battleStack
                             } else { //derby or normal so only 1 person is getting sandwiched = prev person
+                                data.usersMove[3] = ['S', [data.isSandwich[1]] ]; //store person being sandwiched
                                 schema.dict_varData[data.isSandwich[1]][1] = false; //that person was sandwiched so is no longer in round
                                 schema.markModified(`dict_varData.${data.isSandwich[1]}`);
                             }
@@ -238,6 +236,7 @@ module.exports = app => {
                         if (!schema.isBattle && data.isBattle[0] === "T") { //BATTLE, person who just played initiated a battle
                             console.log("Battle1");
                             schema.isBattle = (data.isBattle[0] === "T");
+
                             for (let key in schema.dict_varData) { //set everyones yourTurn to false but battlers
                                 if (key === data.user) { //2 peeps battling
                                     schema.dict_varData[data.user][2] = true; //set person who just instigated battle's turn to true
@@ -250,21 +249,33 @@ module.exports = app => {
                                     schema.markModified(`dict_varData.${key}`);
                                 }
                             }
-                            //update battleStack with players battling
-                            //schema.battleStack.push([data.user, data.isBattle[1]]); //new battler with no move played yet
-                            schema.battleStack_Players.push(data.user); //guy who played
-                            schema.battleStack_Players.push(data.isBattle[1]); //prev guy who played
+
+                            if (schema.dict_varData[data.isBattle[1]][1]) { //if person being battled is still in
+                                schema.battleStack_Players.push(data.user); //guy who played
+                                schema.battleStack_Players.push(data.isBattle[1]); //prev guy who played
+                            } else { //only wait for person still in => person who just played to play one more card to win battle
+                                schema.battleStack_Players.push(data.user); //guy who played, so will only wait for him to play again to end battle
+                                schema.dict_varData[data.isBattle[1]][2] = false; //person being battled has turn = false since he is out of the round
+                                schema.markModified(`dict_varData.${data.isBattle[1]}`);
+                            }
+
+                            //schema.battleStack_Players.push(data.user); //guy who played
+                            //schema.battleStack_Players.push(data.isBattle[1]); //prev guy who played
+                            data.usersMove[3] = ['B', [data.isBattle[1]] ]; //store person being battled
                             schema.cardPile.unshift(data.usersMove); //put move on top of cardPile (in front of array)
                             //now wait for both of them to play their moves then show both
 
                         } else if (schema.isBattle) { //already was a battle, another person joined, >= 3 person battle
-                            schema.dict_varData[data.user][2] = true; //person who is battling has turn = true
-                            schema.markModified(`dict_varData.${data.user}`);
                             let ind = schema.battleStack_Players.indexOf(data.user);
-                            if ( ind < 0 ) { //not already in battle, this person joined out of order via battle button
+                            if ( ind < 0 ) { //not already in battle, via battle button
+                                schema.dict_varData[data.user][2] = true; //person who is battling has turn = true
+                                schema.markModified(`dict_varData.${data.user}`);
+                                data.usersMove[3] = ['B', []]; //dont need to pass people being battled, waste of space //schema.battleStack_Players.slice()
                                 schema.battleStack_Players.push(data.user); //new guy joined battle, so battle > 2 people
                                 schema.cardPile.unshift(data.usersMove); //put move on top of cardPile (in front of array)
-                            } else { //already a part of battle so add his move to stack
+                            } else { //already a part of battle so add his move to stack and set his turn to false
+                                schema.dict_varData[data.user][2] = false; //person who is battling has turn = false
+                                schema.markModified(`dict_varData.${data.user}`);
                                 schema.battleStack_Moves.push(data.usersMove); //add move to existing list of moves
                             }
                             console.log("in battle2: " + data.user);
@@ -273,7 +284,7 @@ module.exports = app => {
                             //any prev players played their batle moves
                             if (schema.battleStack_Players.length === schema.battleStack_Moves.length) { //everyone has played their battle move
                                 //wild 9 could be played so return that in data if played and update schema
-                                schema.cardPile.unshift([schema.battleStack_Moves, "battle", "Battle"]);
+                                //schema.cardPile.unshift([schema.battleStack_Moves, "battle", "Battle", []]); //will be rendered as a battle result
                                 let tmp = schema.battleStack_Moves.slice();
                                 let tmp2 = schema.higherIsBetter;
                                 let resData = whoWonBattle(tmp, tmp2);
@@ -281,8 +292,9 @@ module.exports = app => {
 
                                 //send back who won...
 
-                                if (resData[0].length > 1) { // [0] winners
+                                if (resData[0].length > 1) { // battleOver = false;
                                     // do another battle...
+                                    schema.cardPile.unshift([schema.battleStack_Moves, "battle", "Tie! Another Battle!", []]);
                                     schema.battleStack_Players = []; //reset battleStack
                                     schema.battleStack_Moves = []; //reset battleStack
                                     for (let key in schema.dict_varData) { //put everyone out
@@ -296,18 +308,20 @@ module.exports = app => {
                                         schema.dict_varData[ resData[0][i][2] ][2] = true; //set yourTurn to true for tied battle person
                                         schema.markModified(`dict_varData.${resData[0][i][2]}`); //save
                                     }
-                                    //wait for tied players to play their next battle moves
-                                } else if (resData[0].length == 0) { //everybody ran out of cards or rotten egg was played...
-                                    battleOver = true;
-                                    maybeWinner = "haha... no winner"; //won round
-                                    console.log("won battle: " + maybeWinner);
+                                    // ...wait for tied players to play their next battle moves
                                 } else {
                                     battleOver = true;
-                                    maybeWinner = resData[0][0][2]; //won round
-                                    console.log("won battle: " + maybeWinner);
+                                    schema.cardPile.unshift([schema.battleStack_Moves, "battle", "Battle Rseult", []]);
+                                    if (resData[0].length == 0) { //everybody ran out of cards or rotten egg was played...
+                                        maybeWinner = "haha... no winner"; //won round
+                                        console.log("won battle: " + maybeWinner);
+                                    } else {
+                                        maybeWinner = resData[0][0][2]; //winner won round
+                                        console.log("won battle: " + maybeWinner);
+                                    }
                                 }
                             }
-                            //wait for all people in battle to play their moves
+                            // ...wait for all people in battle to play their moves
                         } else { //NOT A BATTLE, normal / Derby , one person plays at a time
                             if (schema.isDerby) {
                                 console.log("derby");
@@ -406,7 +420,7 @@ module.exports = app => {
                                                     console.log("Folded Rotten egg!!");
                                                     isRottenEgg = true;
                                                     maybeWinner = "haha... no winner";
-                                                    schema.cardPile.unshift( [ ["69x"], 'play', schema.cardPile[p][2] ] ); //to show it was played
+                                                    schema.cardPile.unshift( [ ["69x"], 'play', schema.cardPile[p][2], [] ] ); //to show it was played
                                                     break;
                                                 }
                                             }
