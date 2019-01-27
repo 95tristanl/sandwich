@@ -31,6 +31,7 @@ let Game = new Schema({
     isDerby: { type: Boolean, default: false },
     orderOfPlay: {},  //a dictionary, stores who plays after who, order of play
     chatList: [], // list of strings = messeges sent by people
+    roundLog: [], // holds [last round winner, his prev score, cards won in that round]
     dict_hands: {},   //a dictionary at 0 index of this list
     dict_varData: {} //a dictionary at 0 index of this list
 });

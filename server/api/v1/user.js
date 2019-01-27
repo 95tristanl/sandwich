@@ -11,6 +11,13 @@ module.exports = app => {
     // Creating a new game room ...
     app.post('/createdGame', async (req, res) => {
         try {
+            //console.log("");
+            //console.log(" - - - - - - - - ");
+            //console.log("");
+            //console.log(req.connection.remoteAddress);
+            //console.log("");
+            //console.log(" - - - - - - - - ");
+            //console.log("");
             let tmp1 = {};
             let tmp2 = {};
             tmp1[req.body.lord] = [];
@@ -37,14 +44,15 @@ module.exports = app => {
                 isDerby: false,
                 orderOfPlay: {meh: "poopy"}, //just init with a val that is never going to be used
                 chatList: [], //hold last 10 chat messeges
+                roundLog: [],
                 dict_hands: tmp1,
                 dict_varData: tmp2
             });
             await game.save();
             res.status(200).send({});
         } catch(err) {
-            console.log("Error creating game... ");
-            console.log(err);
+            //console.log("/createdGame - Error creating game... " + err);
+            res.status(500).send({err: "/createdGame - Error creating game... "});
         }
     });
 
@@ -53,13 +61,13 @@ module.exports = app => {
     app.post('/joinedGame', async(req, res) => { //not sure if works
         await app.models.Game.findOne({roomID: req.body.roomID}, async function (err, schema) {
             if (err) {
-                console.log("Game Not Found!");
-                res.status(404).send({error: "Game Not Found!"});
+                //console.log("/joinedGame - Game Not Found!");
+                res.status(404).send({error: "/joinedGame - Game Not Found!"});
                 return __handleError(err);
             } else {
                 if (schema === null) {
-                    console.log("No Schema Found!");
-                    res.status(300).send({error: "No Schema Found!"});
+                    //console.log("/joinedGame - No Schema Found!");
+                    res.status(300).send({error: "/joinedGame - No Schema Found!"});
                 } else {
                     if (Object.keys(schema.dict_hands).length < schema.gameSize) { //schema.players.length < schema.gameSize
                         if (schema.dict_hands[req.body.username] === undefined) {
@@ -71,10 +79,10 @@ module.exports = app => {
                             await schema.save();
                             res.status(200).send({});
                         } else {
-                            res.status(300).send({err: 'That Username is already Taken!'});
+                            res.status(300).send({err: '/joinedGame - That Username is already Taken!'});
                         }
                     } else {
-                        res.status(300).send({err: 'Game Is Full!'});
+                        res.status(300).send({err: '/joinedGame - Game Is Full!'});
                     }
                 }
             }
@@ -86,13 +94,13 @@ module.exports = app => {
     app.post('/getGameData', async(req, res) => {
         await app.models.Game.findOne({roomID: req.body.roomID}, function (err, schema) {
             if (err) {
-                console.log("Game Not Found!");
-                res.status(404).send({ error: 'Game Not Found!' });
+                //console.log("/getGameData - Game Not Found!");
+                res.status(404).send({ error: '/getGameData - Game Not Found!' });
                 return __handleError(err);
             } else {
                 if (schema === null) {
-                    console.log("No Schema Found!");
-                    res.status(300).send({error: "No Schema Found!"});
+                    //console.log("/getGameData - No Schema Found!");
+                    res.status(300).send({error: "/getGameData - No Schema Found!"});
                 } else {
                     res.status(200).send({
                         lord: schema.lord,
@@ -119,11 +127,11 @@ module.exports = app => {
     app.post('/sendStartGame', async(req, res) => {
         await app.models.Game.findOne({roomID: req.body.roomID}, async function (err, schema) {
             if (err) {
-                console.log("Game Not Found!");
-                res.status(404).send({ error: 'Game Not Found!' });
+                //console.log("/sendStartGame - Game Not Found!");
+                res.status(404).send({ error: '/sendStartGame - Game Not Found!' });
             } else {
                 if (schema === null) {
-                    console.log("No Schema Found!");
+                    //console.log("/sendStartGame - No Schema Found!");
                 } else {
                     try {
                         for(let q = 0; q < schema.players.length; q++) { //creates the order of play (whos after who) dictionary
@@ -160,7 +168,7 @@ module.exports = app => {
                         await schema.save();
                         res.status(200).send({});
                     } catch (err) {
-                        res.status(404).send({ error: 'Game Not Found!' });
+                        res.status(404).send({ error: '/sendStartGame - Game Not Found!' });
                         return __handleError(err);
                     }
                 }
@@ -174,12 +182,12 @@ module.exports = app => {
         let data = JSON.parse(req.body.user_data);
         await app.models.Game.findOne({roomID: data.roomID}, async function (err, schema) {
             if (err) {
-                console.log("Game Not Found!");
-                res.status(404).send({ error: 'Game Not Found!' });
+                //console.log("/turnOver_update_clientToServer - Game Not Found!");
+                res.status(404).send({ error: '/turnOver_update_clientToServer - Game Not Found!' });
             } else {
                 if (schema === null) {
-                    console.log("No Schema Found!");
-                    res.status(300).send({error: "No Schema Found!"});
+                    //console.log("/turnOver_update_clientToServer - No Schema Found!");
+                    res.status(300).send({error: "/turnOver_update_clientToServer - No Schema Found!"});
                 } else {
                     try {
                         let battleOver = false;
@@ -188,9 +196,6 @@ module.exports = app => {
                         let isAce = false;
                         let isRottenEgg = false;
                         let stillIn_count = 0;
-                        console.log("ENTERING SERVER:: " + data.user);
-                        console.log(schema.dict_varData);
-                        console.log(data.usersMove);
                         if (!schema.isDerby) { //only set schema.isDerby if false, if schema.isDerby is true, want to keep it true until round ends
                             schema.isDerby = data.isDerby;
                         }
@@ -203,7 +208,6 @@ module.exports = app => {
                         if (data.isSandwich[0] === "T") { //person just sandwiched another person   incoming data has isDerby set to true
                             //schema.dict_varData[data.user][2] = false; //set the persons turn to false since he just played
                             schema.markModified(`dict_varData.${data.user}`);
-                            console.log("sandwich");
                             if (schema.isBattle) {
                                 for (let i = 0; i < schema.battleStack_Players.length; i++) {
                                     if (schema.battleStack_Players[i] !== data.user) {
@@ -212,8 +216,6 @@ module.exports = app => {
                                         schema.markModified(`dict_varData.${schema.battleStack_Players[i]}`);
                                     }
                                 }
-                                console.log(schema.dict_varData);
-                                console.log(schema.battleStack_Players);
                                 //one or more battlers already submitted their battle move so battleStack move list exists
                                 for (let i = 0; i < schema.battleStack_Moves.length; i++) {
                                     //1 prob with sandwiching rn: if 2 peeps are battling, 1 has played a card, other hasn't and a 3rd player sandwiches
@@ -234,7 +236,6 @@ module.exports = app => {
                         }
 
                         if (!schema.isBattle && data.isBattle[0] === "T") { //BATTLE, person who just played initiated a battle
-                            console.log("Battle1");
                             schema.isBattle = (data.isBattle[0] === "T");
 
                             for (let key in schema.dict_varData) { //set everyones yourTurn to false but battlers
@@ -278,7 +279,6 @@ module.exports = app => {
                                 schema.markModified(`dict_varData.${data.user}`);
                                 schema.battleStack_Moves.push(data.usersMove); //add move to existing list of moves
                             }
-                            console.log("in battle2: " + data.user);
 
                             //see who won battle, use short circuit eval because schema.battleStack[1] might not exist if a 3rd or more peeps join battle before
                             //any prev players played their batle moves
@@ -314,18 +314,14 @@ module.exports = app => {
                                     schema.cardPile.unshift([schema.battleStack_Moves, "battle", "Battle Rseult", []]);
                                     if (resData[0].length == 0) { //everybody ran out of cards or rotten egg was played...
                                         maybeWinner = "haha... no winner"; //won round
-                                        console.log("won battle: " + maybeWinner);
                                     } else {
                                         maybeWinner = resData[0][0][2]; //winner won round
-                                        console.log("won battle: " + maybeWinner);
                                     }
                                 }
                             }
                             // ...wait for all people in battle to play their moves
                         } else { //NOT A BATTLE, normal / Derby , one person plays at a time
                             if (schema.isDerby) {
-                                console.log("derby");
-                                console.log(data.usersMove);
                                 schema.cardPile.unshift(data.usersMove);
                                 if (data.usersMove[1] === "play") {
                                     schema.derbyLastPlay = data.user; //keep track of who "played" last, not "passed", never need to reset this value
@@ -339,22 +335,17 @@ module.exports = app => {
 
                                 if (data.usersMove[1] === "play" && data.usersMove[0][0].substr(0,2) === "15") { //Ace was played so end round
                                     //ace so ends round, skips over check below
-                                    console.log("Multi ACE!");
                                 } else {
-                                    console.log("next up");
                                     let next = schema.orderOfPlay[data.user];
-                                    console.log(next);
                                     while (data.user !== next) { //went in a circle so exit loop, next person should have been found
                                         if (schema.dict_varData[next][1] === true) { //found next player who is still in
                                             //if derby and next person up is also the last person who "played" and not "passed", round is over
                                             if (schema.derbyLastPlay === next) {
-                                                console.log("next up was you... went in circle");
                                                 break; //derbyOver = true, ends round by breaking before looping to person who is still in but passed
                                             } //else { //found next player who is still in who did not play the last played hand
                                             aFlag = false;
                                             schema.dict_varData[next][2] = true;
                                             schema.markModified(`dict_varData.${next}`);
-                                            console.log("next up: " + next);
                                             break;
                                             //}
                                         } else {
@@ -364,8 +355,6 @@ module.exports = app => {
                                 }
                                 derbyOver = aFlag; //this ends the round if true
                             } else {
-                                console.log("NORMAL PLAY");
-                                console.log(data.usersMove);
                                 schema.cardPile.unshift(data.usersMove); //put move on top of cardPile (in front of array)
                                 if (data.usersMove[1] === "play" && data.usersMove[0][0].substr(0,2) === "15") { //Ace was played so end round
                                     isAce = true; //only when not a battle and not a derby
@@ -381,9 +370,9 @@ module.exports = app => {
                                     schema.dict_varData[data.user][1] = false; //that person folded so is no longer in round
                                     schema.markModified(`dict_varData.${data.user}`);
                                     if (data.usersMove[1] === "outofcards") {
-                                        console.log("ran out of cards");
+                                        // ran out of cards
                                     } else {
-                                        console.log("folded");
+                                        // folded
                                     }
                                 }
 
@@ -417,7 +406,6 @@ module.exports = app => {
                                         if (schema.cardPile[p][1] === "fold") { //this check speeds loop up
                                             for (let x = 0; x < schema.cardPile[p][0].length; x++) { //go thru a// players played cards
                                                 if (schema.cardPile[p][0][x] === "69x") { //look for a folded rotten egg
-                                                    console.log("Folded Rotten egg!!");
                                                     isRottenEgg = true;
                                                     maybeWinner = "haha... no winner";
                                                     schema.cardPile.unshift( [ ["69x"], 'play', schema.cardPile[p][2], [] ] ); //to show it was played
@@ -443,51 +431,44 @@ module.exports = app => {
                                                 card_count = card_count + 1;
                                             }
                                         }
+                                        schema.roundLog = [maybeWinner, schema.dict_varData[maybeWinner][3], card_count]; //save round events and send back to clients
                                         schema.dict_varData[maybeWinner][3] = schema.dict_varData[maybeWinner][3] + card_count; //adds cards from battle to score
                                         schema.markModified(`dict_varData.${maybeWinner}`); //save
                                     }
                                 } else { //there wasn't a winner...
                                     //dont update schema.dict_varData
-                                    console.log("Did not tally score bc no winner");
                                 }
 
                                 //refuel?
-                                console.log("refuel?");
                                 if (schema.deck.length > 0) {
                                     let refuelStack = [];
                                     let doneCounter = 0;
                                     for (let key in schema.dict_hands) {
                                         if (schema.dict_hands[key].length <= schema.refuelNum) {
                                             refuelStack.push(key); //if player is below limit, add him to stack so he can get refueled
-                                            console.log(key + " is refueling");
                                         }
                                     }
                                     do { //continuous goes around and deals 1 card at a time so cards are dealt evenly amoung players needing refill
                                         doneCounter = 0;
                                         for (let i = 0; i < refuelStack.length; i++) {
-                                            console.log(i);
                                             if (schema.dict_hands[refuelStack[i]].length < schema.handSize && schema.deck.length > 0) { //refuel
                                                 schema.dict_hands[refuelStack[i]].push(schema.deck[ schema.deck.length - 1 ]);
                                                 schema.markModified(`dict_hands.${refuelStack[i]}`); //save
                                                 schema.dict_varData[refuelStack[i]][0] = schema.dict_hands[refuelStack[i]].length; //update cards in hand in dict_varData
                                                 schema.markModified(`dict_dict_varData.${refuelStack[i]}`); //save
-                                                console.log("ref: " + refuelStack[i] + " : " + schema.deck[ schema.deck.length - 1 ]);
                                                 schema.deck.pop(); //get rid of last card in deck that was just dealt to players hand
                                             } else {
                                                 doneCounter = doneCounter + 1;
-                                                console.log("done refueling a player");
                                             }
                                         }
-                                        console.log("doneCounter : " + doneCounter);
                                     } while (doneCounter < refuelStack.length)
                                     //only sort hands of player/s that needed to refuel
-                                    console.log("refuelStack.length " + refuelStack.length);
                                     for (let i = 0; i < refuelStack.length; i++) {
                                         schema.dict_hands[refuelStack[i]] = sortHand(schema.dict_hands[refuelStack[i]])
                                         schema.markModified(`dict_hands.${refuelStack[i]}`);
                                     }
                                 } else {
-                                    console.log("no more cards in deck... cant refuel");
+                                    // no more cards in deck... cant refuel
                                 }
                                 //reset everything for next round since round is over
                                 schema.isBattle = false;
@@ -500,85 +481,71 @@ module.exports = app => {
                                     schema.dict_varData[key][2] = false; //set yourTurn to false for everyone
                                     schema.markModified(`dict_varData.${key}`); //save
                                 }
-                                console.log(schema.end_round);
                                 //gameOver?
                                 if (schema.deck.length === 0) { //even if no cards left in deck, play until only 1 or 0 people left with cards
-                                    console.log("no cards left in deck");
                                     let guysWithHands_count = 0;
                                     for (let key in schema.dict_hands) {
                                         if (schema.dict_hands[key].length > 0) { //if this person is still in increase count
                                             guysWithHands_count = guysWithHands_count + 1;
+                                        } else { //he has no more cards left so set stillIn = false (will be like this for rest of the game)
+                                            schema.dict_varData[key][1] = false; //set stillIn to false
+                                            schema.markModified(`dict_varData.${key}`);
                                         }
                                         if (guysWithHands_count > 1) { //speeds up look-up loop
-                                            console.log("still > 1 guys with cards in their hands");
                                             break; //Game is NOT over
                                         }
                                     }
                                     if (guysWithHands_count <= 1) { //game is over
                                         let winner = [schema.lord]; //could be a tie
-                                        console.log("game is over" );
                                         for (let keyy in schema.dict_varData) {
                                             if (schema.dict_varData[keyy][3] > schema.dict_varData[winner[0]][3]) {
                                                 winner = [keyy]; //better than the person or people tied
-                                                console.log("leading gmOv: " + keyy);
                                             } else if (schema.dict_varData[keyy][3] === schema.dict_varData[winner[0]][3] && keyy !== schema.lord) {
-                                                console.log("now its a tie: " + keyy);
                                                 winner.push(keyy); //so far is a tie
                                             }
                                         }
                                         schema.gameOver = ["T", winner];
-                                        console.log("winner : ");
-                                        console.log(winner);
                                     }
                                 }
 
                                 //Game not over...
                                 if (schema.gameOver[0] === "F") { //game is not over but round is, maybeWinner won round so he starts next round
                                     let toStart = maybeWinner;
-                                    console.log("Setting toStart");
                                     if (maybeWinner === "haha... no winner") {
                                         toStart = schema.players[Math.floor(Math.random()*schema.players.length)];
                                     }
                                     while (schema.dict_varData[toStart][0] <= 0 ) { //while that player is not out of the game (has cards)
                                         toStart = orderOfPlay[toStart]; //look at next person in line
-                                        console.log("Player was out of the game already...");
                                     } //this loop should always end since there are > 1 people with cards left in their hand
                                     schema.dict_varData[toStart][2] = true;
-                                    console.log(toStart + " toStart");
                                 }
                             } else if (stillIn_count > 1 && !schema.isDerby) { //Round not over. in normal mode. set next persons turn whos still in
-                                console.log("Next up...");
                                 //round is not over, if not a battle and cur player has played, find next person still in
                                 let next = schema.orderOfPlay[data.user];
                                 while (data.user !== next) { //went in a circle so exit loop, next person should have been found
                                     if (schema.dict_varData[next][1] === true) { //found next player who is still in
                                         schema.dict_varData[next][2] = true;
                                         schema.markModified(`dict_varData.${next}`);
-                                        console.log("NEXT: " + next);
                                         break;
                                     } else {
                                         next = schema.orderOfPlay[next]; //increment to next player
                                     }
                                 }
                                 if (data.user === next) {
-                                    console.log("someone else should still be in... something is wrong");
+                                    // someone else should still be in... something is wrong
                                 }
                             } else {
-                                console.log("Derby still going");
-                                console.log(data.usersMove);
-                                console.log("der ...");
+                                // Derby still going
                             }
                         } else {
                             //battle isn't over...
                             //wait for all players in battle to play their moves
                         }
-                        console.log(schema.dict_varData);
-                        console.log("SAVING schema");
                         await schema.save();
                         res.status(200).send({});
                     } catch (err) {
-                        console.log(err);
-                        res.status(404).send({ error: 'UPDATE after turn FAILED!' });
+                        //console.log('/turnOver_update_clientToServer - err');
+                        res.status(404).send({ error: '/turnOver_update_clientToServer - UPDATE after turn FAILED!' });
                         return err;
                     }
                 }
@@ -590,13 +557,13 @@ module.exports = app => {
     app.post('/update_ServerToClient', async(req, res) => {
         await app.models.Game.findOne({roomID: req.body.roomID}, async function (err, schema) {
             if (err) {
-                console.log("Game Not Found!");
-                res.status(404).send({ error: 'Game Not Found!' });
+                //console.log("/update_ServerToClient - Game Not Found!");
+                res.status(404).send({ error: '/update_ServerToClient - Game Not Found!' });
                 return __handleError(err);
             } else {
                 if (schema === null) {
-                    console.log("No Schema Found!");
-                    res.status(300).send({error: "No Schema Found!"});
+                    //console.log("/update_ServerToClient - No Schema Found!");
+                    res.status(300).send({error: "/update_ServerToClient - No Schema Found!"});
                 } else {
                     let server_obj = {};
                     server_obj.hand = schema.dict_hands[req.body.user];
@@ -610,6 +577,7 @@ module.exports = app => {
                     server_obj.gameOver = schema.gameOver;
                     server_obj.end_round = schema.end_round;
                     server_obj.chatList = schema.chatList;
+                    server_obj.roundLog = schema.roundLog;
                     let server_JSON = JSON.stringify(server_obj);
                     res.status(200).send({
                         server_data: server_JSON
@@ -624,21 +592,20 @@ module.exports = app => {
         let data = JSON.parse(req.body.user_data);
         await app.models.Game.findOne({roomID: data.roomID}, async function (err, schema) {
             if (err) {
-                console.log("Game Not Found!");
-                res.status(404).send({ error: 'Game Not Found!' });
+                //console.log("/start_new_round - Game Not Found!");
+                res.status(404).send({ error: '/start_new_round - Game Not Found!' });
             } else {
                 if (schema === null) {
-                    console.log("No Schema Found!");
-                    res.status(300).send({error: "No Schema Found!"});
+                    //console.log("/start_new_round - No Schema Found!");
+                    res.status(300).send({error: "/start_new_round - No Schema Found!"});
                 } else {
                     try {
-                        console.log("RESETTING for NEW ROUND");
                         schema.cardPile = []; //reset
                         schema.end_round = ["false", ""]; //reset
                         await schema.save();
                         res.status(200).send({});
                     } catch (err) {
-                        res.status(404).send({ error: 'Could not save schema data!' });
+                        res.status(404).send({ error: '/start_new_round - Could not save schema data!' });
                     }
                 }
             }
@@ -650,12 +617,12 @@ module.exports = app => {
         let data = JSON.parse(req.body.user_data);
         await app.models.Game.findOne({roomID: data.roomID}, async function (err, schema) {
             if (err) {
-                console.log("Game Not Found!");
-                res.status(404).send({ error: 'Game Not Found!' });
+                //console.log("/chatRoom - Game Not Found!");
+                res.status(404).send({ error: '/chatRoom - Game Not Found!' });
             } else {
                 if (schema === null) {
-                    console.log("No Schema Found!");
-                    res.status(300).send({error: "No Schema Found!"});
+                    //console.log("/chatRoom - No Schema Found!");
+                    res.status(300).send({error: "/chatRoom - No Schema Found!"});
                 } else {
                     try {
                         schema.chatList.unshift(data.user + " : " + data.msg);
@@ -665,7 +632,7 @@ module.exports = app => {
                         await schema.save();
                         res.status(200).send({});
                     } catch (err) {
-                        res.status(404).send({ error: 'Could not save schema data!' });
+                        res.status(404).send({ error: '/chatRoom - Could not save schema data!' });
                     }
                 }
             }
@@ -676,10 +643,10 @@ module.exports = app => {
     app.post('/deleteRoom', async(req, res) => {
         await app.models.Game.findOneAndRemove({roomID: req.body.roomID}, async function (err) {
             if (err) {
-                console.log(err);
-                res.status(500).send({});
+                //console.log("/deleteRoom - error");
+                res.status(500).send({error: "/deleteRoom - error"});
             } else {
-                console.log("deleted : " + req.body.roomID);
+                //console.log("deleted : " + req.body.roomID);
                 res.status(200).send({});
             }
         });
@@ -688,23 +655,19 @@ module.exports = app => {
 
 
 //makes the deck based on the deckSize (number of decks param) and shuffles it
-function makeDeck(numDecks) {
+function makeDeck(numDecks) { //14 is for the 2 jokers
     let newDeck = [];
     let sumDeck = [];
-    //14 is for the 2 jokers
-
+    /*
     let deck = ['2c', '2d', '2h', '2s', '3c', '3d', '3h', '3s', '4c', '4d', '4h', '4s', '5c', '5d', '5h',
     '5s', '6c', '6d', '6h', '6s', '7c', '7d', '7h', '7s', '8c', '8d', '8h', '8s', '9c', '9d', '9h', '9s', '10c', '10d', '10h',
     '10s', '11c', '11d', '11h', '11s', '12c', '12d', '12h', '12s', '13c', '13d', '13h', '13s', '14j', '14j', '15c', '15d', '15h', '15s'];
+    */
 
-
-    //length = 12
-    //let deck = ['11h', '11s', '12c', '12d', '12h', '12s', '13c', '13d', '13h', '13s', '14j', '14j'];
-
+    let deck = ['2c', '2d', '2h', '2s', '3c', '3d', '3h', '3s', '4c', '4d', '4h', '4s', '5c', '5d']; //14 cards
     for (let i = 0; i < numDecks; i++) {
         sumDeck = sumDeck.concat(deck);
     }
-
     while (sumDeck.length > 0) {
         let ran = Math.floor((Math.random() * sumDeck.length));
         newDeck.push(sumDeck[ran]);
@@ -716,8 +679,6 @@ function makeDeck(numDecks) {
 
 //sort hand, lowest to highest/joker
 function sortHand(hand) {
-    console.log(hand);
-    console.log("sorting hand");
     let sortedHand = [];
     for (let i = 0; i < hand.length; i++) {
         if (sortedHand.length === 0) {
@@ -735,70 +696,45 @@ function sortHand(hand) {
           }
         }
     }
-    console.log("sorted");
-    console.log(sortedHand);
     return sortedHand;
 }
 
 function whoWonBattle(battleStack_Moves, higherIsBetter) {
-    console.log("in wwB");
     let plays = [];
-    console.log(battleStack_Moves);
-    //find anyone who ran out of cards (this rarely happens...)
-    for (let i = 0; i < battleStack_Moves.length; i++) {
+    for (let i = 0; i < battleStack_Moves.length; i++) { //only keep played moves when calculating winner
         if (battleStack_Moves[i][1] === "play") {
             plays.push(battleStack_Moves[i]); //
-        } else if (battleStack_Moves[i][1] === "wild") { //wild 9 was played, update higherIsBetter.
-            console.log("wild 9 was played in battle " + battleStack_Moves[i][2]);
+        } else if (battleStack_Moves[i][1] === "wild") { //wild 9 was played, update higherIsBetter, will affect battle result
             if (battleStack_Moves[i][0][0] === "wild_H") {
                 higherIsBetter = true;
             } else {
                 higherIsBetter = false;
             }
-        } else if (battleStack_Moves[i][1] === "fold") {
-            console.log("folded in a battle... lame " + battleStack_Moves[i][2]);
-        } else if (battleStack_Moves[i][1] === "outofcards") {
-            console.log("ran out of cards: " + battleStack_Moves[i][2]);
-        } else {
-            console.log("UH? : " + battleStack_Moves[i][1] + " : " + battleStack_Moves[i][2]);
         }
     }
-    console.log("ee");
-    console.log(plays);
     let winner = [];
-    //now go through stack and see who won, there could be a tie
-    if (plays.length > 0) {
+    if (plays.length > 0) { //now go through stack and see who won, there could be a tie
         winner = [plays[0]]; //start off assuming this player is winner
-        console.log(winner);
         plays.splice(0, 1); //remove start-off winner player
-        console.log(plays);
         for (let i = 0; i < plays.length; i++) { //look through rest and compare
             let leadingCard = winner[0][0][0]; //string ex. "12c"
             let curCard = plays[i][0][0]; //string ex. "12c"
             leadingCard = parseInt( leadingCard.substr(0, leadingCard.length - 1) ); //card value
             curCard = parseInt( curCard.substr(0, curCard.length - 1) ); //card value
             if (curCard === 69 || leadingCard === 69) { //rotten egg was played
-                console.log("Rotten egg played in battle");
                 winner = [];
-                break;
+                break; // Rotten egg played in battle
             }
-            console.log(leadingCard);
-            console.log(curCard);
             if ( (higherIsBetter && leadingCard < curCard) ||
                  (!higherIsBetter && leadingCard > curCard && leadingCard !== 15) ||
                  (!higherIsBetter && leadingCard < curCard && curCard === 15) ) {
                 winner = [plays[i]];
-                console.log("new leader");
-                console.log(winner);
             } else if (leadingCard === curCard) { //tie, so add to winner stack
                 winner.push(plays[i]);
-                console.log(winner);
             }
         }
-    } else { //somehow both/all of the poeple battling ran out of cards... possible but very, very, very, improbable
-        console.log("no moves in battle stack... no winner...");
-        console.log(winner); // = []
+    } else {
+        //somehow all poeple battling ran out of cards... possible but very, very, very, improbable
     }
-
-    return [winner, higherIsBetter]; //return winner/s and higherIsBetter because it could be updated
+    return [winner, higherIsBetter]; //return winner/s and higherIsBetter
 }

@@ -11,10 +11,10 @@ var roomID = "No_Room_ID";
 function createNewGameRoom(event, form) {
     event.preventDefault();
 
-    if (form.username_c.value.match(/^[a-zA-Z0-9]{3,15}$/) ) {
+    if (form.username_c.value.match(/^[a-zA-Z0-9]{3,12}$/) ) {
         //valid
     } else {
-        alert("Username must only contain letters and numbers and must be 3-15 characters!");
+        alert("Username must only contain letters and numbers and must be 3-12 characters!");
         return;
     }
 
