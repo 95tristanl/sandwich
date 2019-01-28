@@ -115,6 +115,7 @@ window.onload = () => {
                 user.cardsInDeck = data.deckSize;
                 document.getElementById("cardDeck").innerHTML = user.cardsInDeck; //display num cards left in deck
                 updateChatList(data.chatList);
+
                 if (user.username === user.lord && !user.startGame) { //startgame button only appears for (lord) creator of room, once clicked will try and start game
                     document.getElementById('startGameButton').style.display = "block"; //display button
                 }
