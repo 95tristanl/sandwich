@@ -21,8 +21,9 @@ const setupServer = async () => {
     // Connect to MongoDB
     try {
         //await mongoose.connect("mongodb://localhost:27017/leveiltt"); //mongo on aws or some box
-        await mongoose.connect("mongodb://localhost:27017/leveiltt", {useNewUrlParser: true});
         //console.log("MongoDB connected: mongodb://localhost:32768/leveiltt"); //kitematic
+        await mongoose.connect("mongodb://localhost:27017/leveiltt", {useNewUrlParser: true});
+        console.log("MongoDB connected: mongodb://localhost:27017/leveiltt"); //kitematic
     } catch (err) {
         //console.log(err);
         process.exit(-1);
