@@ -294,6 +294,8 @@ function playGame_afterServerUpdate() { //called every second
                         //console.log(".     reg time");
                     }
                     // - - - TIMER STUFF ***
+                    console.log("Before_play");
+                    console.log(user.cardSelectedStack);
                     user.yourTurn_FirstCall = false;
                 }
 
@@ -354,6 +356,8 @@ function playGame_afterServerUpdate() { //called every second
                     // - - - TIMER STUFF ***
 
                 } else { //played
+                    console.log("played");
+                    console.log(user.cardSelectedStack);
                     document.getElementById("foldButton").style.display = "none";
                     document.getElementById("passButton").style.display = "none";
                     document.getElementById("playButton").style.display = "none";
@@ -462,6 +466,8 @@ function battleSandwich() { //if was not clients turn but decided to battle/sand
         for (let i = 0; i < user.cardPile.length; i++) {
             if (user.cardPile[i][1] === 'play') { //the card(s) that the user must beat
                 lastPlay = user.cardPile[i][0];
+                console.log('lastPlay_B');
+                console.log(lastPlay);
                 lastFoe = user.cardPile[i][2];
                 break; //the reason we loop instead of picking top of queue is because we only play against 'play' cards, not wild or fold cards.
             }
@@ -551,6 +557,8 @@ function play() {
                 for (let i = 0; i < user.cardPile.length; i++) {
                     if (user.cardPile[i][1] === 'play') { //the card(s) that the user must beat (dont need to beat a fold, pass or wild)
                         lastPlay = user.cardPile[i][0];
+                        console.log('lastPlay');
+                        console.log(lastPlay);
                         lastFoe = user.cardPile[i][2]; //last person to 'play' a normal card (not a fold, pass, or wild)
                         break; //only look for 'play' cards, not wild, pass, fold, etc.
                     }

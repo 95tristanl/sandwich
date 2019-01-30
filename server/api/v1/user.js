@@ -12,11 +12,7 @@ module.exports = app => {
     app.post('/createdGame', async (req, res) => {
         try {
             //console.log("");
-            //console.log(" - - - - - - - - ");
-            //console.log("");
             //console.log(req.connection.remoteAddress);
-            //console.log("");
-            //console.log(" - - - - - - - - ");
             //console.log("");
             let tmp1 = {};
             let tmp2 = {};
@@ -197,6 +193,7 @@ module.exports = app => {
                         let isAce = false;
                         let isRottenEgg = false;
                         let stillIn_count = 0;
+                        console.log(data.usersMove);
                         if (!schema.isDerby) { //only set schema.isDerby if false, if schema.isDerby is true, want to keep it true until round ends
                             schema.isDerby = data.isDerby;
                         }
@@ -209,7 +206,7 @@ module.exports = app => {
                         if (data.isSandwich[0] === "T") { //person just sandwiched another person   incoming data has isDerby set to true
                             //schema.dict_varData[data.user][2] = false; //set the persons turn to false since he just played
                             schema.markModified(`dict_varData.${data.user}`);
-                            if (schema.isBattle) {
+                            if (schema.isBattle) { // its already a battle
                                 for (let i = 0; i < schema.battleStack_Players.length; i++) {
                                     if (schema.battleStack_Players[i] !== data.user) {
                                         schema.dict_varData[schema.battleStack_Players[i]][2] = false; //not their turn anymore
@@ -226,6 +223,10 @@ module.exports = app => {
                                 }
 
                                 data.usersMove[3] = ['S', schema.battleStack_Players.slice()]; //store replica in move
+                                console.log(data.usersMove[0]);
+                                if (data.usersMove[0].length === 1) {
+                                    schema.isDerby = false;
+                                }
                                 schema.isBattle = false; //no longer a battle since everyone in it was sandwiched
                                 schema.battleStack_Players = []; //reset battleStack
                                 schema.battleStack_Moves = []; //reset battleStack
