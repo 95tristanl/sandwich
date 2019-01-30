@@ -3,9 +3,9 @@
 function tmp() {
 
     let a = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k"];
-    a = a.slice();
+    //a = a.slice();
     //let b = a.slice();
-    //a = a.splice(1);
+    a.splice(1, 1);
     //let c = ["1", "2"];
     //let d = ["3"];
 

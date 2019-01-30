@@ -6,7 +6,6 @@
 let http = require('http');
 //let https = require("https");
 let express = require('express');
-//let socketio = require('socket.io');
 let mongoose = require("mongoose");
 var bodyParser = require("body-parser");
 
@@ -29,16 +28,16 @@ const setupServer = async () => {
         process.exit(-1);
     }
 
-    // Import our Data Models
+    // Import Data Models
     app.models = {
         Game: require("./models/game")
     };
 
-    // Import our routes
+    // Import routes
     require("./api")(app);
 
     server.listen(4000, () => { //4000  8080
-        //console.log('Started on 8080');
+        console.log('Started on 4000');
     });
 };
 // Run the server

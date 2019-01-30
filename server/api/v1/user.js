@@ -11,9 +11,7 @@ module.exports = app => {
     // Creating a new game room ...
     app.post('/createdGame', async (req, res) => {
         try {
-            //console.log("");
-            //console.log(req.connection.remoteAddress);
-            //console.log("");
+            console.log("con from: " + req.connection.remoteAddress);
             let tmp1 = {};
             let tmp2 = {};
             tmp1[req.body.lord] = [];
@@ -193,7 +191,10 @@ module.exports = app => {
                         let isAce = false;
                         let isRottenEgg = false;
                         let stillIn_count = 0;
+                        console.log("M and H");
                         console.log(data.usersMove);
+                        console.log(data.usersHand);
+                        console.log("- - -");
                         if (!schema.isDerby) { //only set schema.isDerby if false, if schema.isDerby is true, want to keep it true until round ends
                             schema.isDerby = data.isDerby;
                         }
@@ -401,9 +402,7 @@ module.exports = app => {
                         if (!schema.isBattle || battleOver || derbyOver) { //only skip over this if in the middle of a battle
                             if (stillIn_count === 1 || isAce || isRottenEgg || battleOver || derbyOver) { //round is over.
                                 let card_count = 0;
-                                if (maybeWinner !== "haha... no winner") { //there maybe was a winner
-                                    //check for folded rotten egg
-                                    //let len = schema.cardPile.length; // otherwise will be an infinite loop if egg is found
+                                if (maybeWinner !== "haha... no winner") { //check to see if a rotten egg was played
                                     for (let p = 0; p < schema.cardPile.length; p++) { //go thru all players
                                         if (schema.cardPile[p][1] === "fold") { //this check speeds loop up
                                             for (let x = 0; x < schema.cardPile[p][0].length; x++) { //go thru a// players played cards
@@ -419,26 +418,28 @@ module.exports = app => {
                                             break;
                                         }
                                     }
-                                    if (!isRottenEgg) { //update score
-                                        for (let x = 0; x < schema.cardPile.length; x++) { //only tally play, wild, and folded cards
-                                            if (schema.cardPile[x][1] === "play" || schema.cardPile[x][1] === "fold") {
-                                                card_count = card_count + schema.cardPile[x][0].length;
-                                            } else if (schema.cardPile[x][1] === "battle") {
-                                                for (let y = 0; y < schema.cardPile[x][0].length; y++) {
-                                                    if (schema.cardPile[x][0][y][1] !== "outofcards") {
-                                                        card_count = card_count + schema.cardPile[x][0][y][0].length; //num cards played per person in battle
-                                                    }
-                                                }
-                                            } else if (schema.cardPile[x][1] === "wild") {
-                                                card_count = card_count + 1;
+                                }
+                                //always want to see how many cards were played
+                                for (let x = 0; x < schema.cardPile.length; x++) { //only tally play, wild, and folded cards
+                                    if (schema.cardPile[x][1] === "play" || schema.cardPile[x][1] === "fold") {
+                                        card_count = card_count + schema.cardPile[x][0].length;
+                                    } else if (schema.cardPile[x][1] === "battle") {
+                                        for (let y = 0; y < schema.cardPile[x][0].length; y++) {
+                                            if (schema.cardPile[x][0][y][1] !== "outofcards") {
+                                                card_count = card_count + schema.cardPile[x][0][y][0].length; //num cards played per person in battle
                                             }
                                         }
-                                        schema.roundLog = [maybeWinner, schema.dict_varData[maybeWinner][3], card_count]; //save round events and send back to clients
-                                        schema.dict_varData[maybeWinner][3] = schema.dict_varData[maybeWinner][3] + card_count; //adds cards from battle to score
-                                        schema.markModified(`dict_varData.${maybeWinner}`); //save
+                                    } else if (schema.cardPile[x][1] === "wild") {
+                                        card_count = card_count + 1;
                                     }
-                                } else { //there wasn't a winner...
-                                    //dont update schema.dict_varData
+                                }
+
+                                if (maybeWinner === "haha... no winner") { //there wasn't a winner...  rotten egg or tie
+                                    schema.roundLog = ["no winner", "none", card_count]; //save round events and send back to clients
+                                } else { // add score to winners score
+                                    schema.roundLog = [maybeWinner, schema.dict_varData[maybeWinner][3], card_count]; //save round events and send back to clients
+                                    schema.dict_varData[maybeWinner][3] = schema.dict_varData[maybeWinner][3] + card_count; //adds cards from battle to score
+                                    schema.markModified(`dict_varData.${maybeWinner}`); //save
                                 }
 
                                 //refuel?
@@ -660,9 +661,13 @@ module.exports = app => {
 function makeDeck(numDecks) { //14 is for the 2 jokers
     let newDeck = [];
     let sumDeck = [];
+
     let deck = ['2c', '2d', '2h', '2s', '3c', '3d', '3h', '3s', '4c', '4d', '4h', '4s', '5c', '5d', '5h',
     '5s', '6c', '6d', '6h', '6s', '7c', '7d', '7h', '7s', '8c', '8d', '8h', '8s', '9c', '9d', '9h', '9s', '10c', '10d', '10h',
     '10s', '11c', '11d', '11h', '11s', '12c', '12d', '12h', '12s', '13c', '13d', '13h', '13s', '14j', '14j', '15c', '15d', '15h', '15s'];
+
+
+    //let deck = ['2c', '2d', '2h', '2s', '3c', '3d', '3h', '3s', '4c', '4d']; //10
 
     for (let i = 0; i < numDecks; i++) {
         sumDeck = sumDeck.concat(deck);
