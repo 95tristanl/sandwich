@@ -21,8 +21,8 @@ const setupServer = async () => {
     try {
         //await mongoose.connect("mongodb://localhost:27017/leveiltt"); //mongo on aws or some box
         //console.log("MongoDB connected: mongodb://localhost:32768/leveiltt"); //kitematic
-        await mongoose.connect("mongodb://localhost:27017/leveiltt", {useNewUrlParser: true});
-        console.log("MongoDB connected: mongodb://localhost:27017/leveiltt"); //kitematic
+        await mongoose.connect("mongodb://localhost:32770/leveiltt", {useNewUrlParser: true});
+        console.log("MongoDB connected: mongodb://localhost:32770/leveiltt"); //kitematic
     } catch (err) {
         //console.log(err);
         process.exit(-1);
@@ -36,8 +36,8 @@ const setupServer = async () => {
     // Import routes
     require("./api")(app);
 
-    server.listen(4000, () => { //4000  8080
-        console.log('Started on 4000');
+    server.listen(8080, () => { //4000  8080
+        console.log('Started on 8080');
     });
 };
 // Run the server

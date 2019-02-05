@@ -73,7 +73,7 @@ function createNewGameRoom(event, form) {
         function(data, status) {
             if (status === 'success') {
                 roomID = form.roomID_c.value;
-                localStorage.setItem('onTheClock', "F"); //setting timer obj for when its your turn to false (you are not being timed to play yet)
+                //localStorage.setItem('onTheClock', "F"); //setting timer obj for when its your turn to false (you are not being timed to play yet)
                 localStorage.setItem('curUser', curUser); // Persists to browser storage
                 location.assign("/gamePage.html?roomID=" + form.roomID_c.value);
             }
@@ -113,7 +113,7 @@ function joinGameRoom(event, form) {
         },
         success: function (data) {
             roomID = form.roomID_j.value;
-            localStorage.setItem('onTheClock', "F"); //setting timer obj for when its your turn to false (you are not being timed to play yet)
+            //localStorage.setItem('onTheClock', "F"); //setting timer obj for when its your turn to false (you are not being timed to play yet)
             localStorage.setItem('curUser', curUser); // Persists to browser storage
             location.assign("/gamePage.html?roomID=" + form.roomID_j.value);
         },
