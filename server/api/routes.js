@@ -11,7 +11,7 @@ module.exports = app => {
     // Creating a new game room ...
     app.post('/createdGame', async (req, res) => {
         try {
-            console.log("con from: " + req.connection.remoteAddress);
+            //console.log("con from: " + req.connection.remoteAddress);
             let tmp1 = {};
             let tmp2 = {};
             tmp1[req.body.lord] = [];
@@ -44,7 +44,7 @@ module.exports = app => {
                 dict_varData: tmp2
             });
             await game.save();
-            console.log("Created: " + req.body.roomID);
+            //console.log("Created: " + req.body.roomID);
             res.status(200).send({});
         } catch(err) {
             //console.log("/createdGame - Error creating game... " + err);
@@ -67,7 +67,7 @@ module.exports = app => {
                 } else {
                     if (Object.keys(schema.dict_hands).length < schema.gameSize) { //schema.players.length < schema.gameSize
                         if (schema.dict_hands[req.body.username] === undefined) {
-                            console.log("con from: " + req.connection.remoteAddress);
+                            //console.log("con from: " + req.connection.remoteAddress);
                             schema.dict_varData[req.body.username] = [0, false, false, 0, false];
                             schema.markModified(`dict_varData.${req.body.username}`); //manually give path to updated object for saving
                             schema.dict_hands[req.body.username] = [];
