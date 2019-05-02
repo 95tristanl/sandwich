@@ -37,8 +37,8 @@ const setupServer = async () => {
     // Import routes
     require("./api/routes")(app); //pass Data Model into routes
 
-    app.listen(8080, () => { //4000  8080 server.listen
-        console.log('Started on 8080');
+    app.listen(4000, () => { //4000 for aws ,  8080 server.listen for localhost
+        console.log('Started on 4000');
     });
 };
 // Run the server
