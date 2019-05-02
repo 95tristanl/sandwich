@@ -122,7 +122,6 @@ window.onload = () => {
                 }
 
                 if (user.startGame) { //also init timer stuff
-                    //user.timerObj.timeoutNum = 40000; //40 seconds to play
                     clearInterval(waitToStartGame_interv); //interval is stopped -> startGame is true -> everyone is here and lord pressed start button
                     setHand();
                     user.timerObj.keepUpdating = setInterval(playGame_keepUpdatingFromServer, 1000); //this starts game. goes every sec
@@ -215,6 +214,11 @@ function playGame_keepUpdatingFromServer() { //called every timestep (some amoun
         },
         function(data, status) {
             let server_data = JSON.parse(data.server_data);
+            if (server_data.user_leaving !== "") {
+                document.getElementById("round_winner").innerHTML = server_data.user_leaving + " just left the game... this game is over :(";
+                document.getElementById("round_winner").style.backgroundColor = "red";
+                document.getElementById("round_title").style.backgroundColor = "red";
+            }
             if (user.higherIsBetter !== server_data.higherIsBetter) { //only update if incoming flag is diff from users flag
                 user.higherIsBetter = server_data.higherIsBetter;
                 if (server_data.higherIsBetter) {
@@ -248,7 +252,7 @@ function playGame_keepUpdatingFromServer() { //called every timestep (some amoun
                 user.hand = server_data.hand; //only time server updates users hand, do this before setHand() which happens in endRound() below
                 setHand(); //can only refuel after a round is over.
                 scoreboard_roundLog(server_data.roundLog);
-                endRound(server_data.end_round[1]);
+                endRound(server_data.end_round[1], server_data.roundLog);
             }
             scoreboard(server_data.dict_varData); // update displays of each players: handSize, stillIn, yourTurn, score
             user.dict_varData = server_data.dict_varData;
@@ -286,10 +290,8 @@ function playGame_afterServerUpdate() { //called every second
             if (user.yourTurn === true) { // your turn ?
                 if (user.yourTurn_FirstCall) { //the first and only time this will execute when its your turn
                     // - - - TIMER STUFF ***
-                    //user.timerObj.timeoutNum = 31000; //31 seconds to play
-                    //console.log("ytfc sanded? " + user.dict_varData[user.username][4]);
                     if (user.dict_varData[user.username][4]) { //you have been sandwiched
-                        user.timerObj.timeoutNum = 23000; //12 seconds to play
+                        user.timerObj.timeoutNum = 15000; //12 seconds to play
                     } else {
                         user.timerObj.timeoutNum = 40000; //40 seconds to play
                     }
@@ -1243,10 +1245,10 @@ function updateChatList(lst) {
     }
 }
 
-function endRound(winner) {
+function endRound(winner, roundLog) {
     user.end_round = "true";
     user.timerObj.endRound_timeout = setTimeout(newRound, 10000); //10 seconds
-    document.getElementById("round_winner").innerHTML = winner + " won the round.";
+    document.getElementById("round_winner").innerHTML = winner + " won the round. Score: " + roundLog[1] + " + " + roundLog[2];
     document.getElementById("round_winner").style.backgroundColor = "pink";
     document.getElementById("round_title").style.backgroundColor = "pink";
     document.getElementById("foldButton").style.display = "none";
@@ -1288,5 +1290,12 @@ window.addEventListener('beforeunload', function(e) {
         });
     } else {
         //console.log("minion left...");
+        $.post('/leftRoom',
+            {
+                roomID: roomID,
+                user: user.username
+            },
+            function(data, status){
+        });
     }
 });

@@ -7,11 +7,10 @@
 let mongoose = require("mongoose");
 let Schema = mongoose.Schema;
 
-/***************** User Model *******************/
-
 let Game = new Schema({
     lord: {type: String},
     roomID: {type: String },
+    leavingAlert: {type: String },
     deckSize: {type: Number},
     gameSize: {type: Number},
     handSize: {type: Number},
@@ -42,7 +41,5 @@ Game.pre("save", function(next) {
     //this.username = this.username.replace(/<(?:.|\n)*?>/gm, '');
     next();
 });
-
-/***************** Registration *******************/
 
 module.exports = mongoose.model("Game", Game);
