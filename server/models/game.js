@@ -34,7 +34,7 @@ let Game = new Schema({
     chatList: [], // list of strings = messeges sent by people
     roundLog: [], // holds [last round winner, his prev score, cards won in that round]
     dict_hands: {},   //a dictionary at 0 index of this list
-    dict_varData: {} //a dictionary at 0 index of this list
+    dict_varData: {} //a dictionary at 0 index of this list [handSize, stillIn, yourTurn, score, sandwiched]
 });
 
 Game.pre("save", function(next) {

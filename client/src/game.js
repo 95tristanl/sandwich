@@ -124,7 +124,7 @@ window.onload = () => {
                 if (user.startGame) { //also init timer stuff
                     clearInterval(waitToStartGame_interv); //interval is stopped -> startGame is true -> everyone is here and lord pressed start button
                     setHand();
-                    user.timerObj.keepUpdating = setInterval(playGame_keepUpdatingFromServer, 1000); //this starts game. goes every sec
+                    user.timerObj.keepUpdating = setInterval(playGame_keepUpdatingFromServer, 200); //this starts game. goes every .2sec
                 }
         });
     }
@@ -291,12 +291,12 @@ function playGame_afterServerUpdate() { //called every second
                 if (user.yourTurn_FirstCall) { //the first and only time this will execute when its your turn
                     // - - - TIMER STUFF ***
                     if (user.dict_varData[user.username][4]) { //you have been sandwiched
-                        user.timerObj.timeoutNum = 15000; //12 seconds to play
+                        user.timerObj.timeoutNum = 12000; //12 seconds to play
                     } else {
                         user.timerObj.timeoutNum = 40000; //40 seconds to play
                     }
                     /*
-                    if (localStorage.getItem('onTheClock') === "T") { //exitted window or something ... ? bc 'onTheClock' should be false at this point
+                    if (localStorage.getItem('onTheClock') === "T") { //exited window or something ... ? bc 'onTheClock' should be false at this point
                         user.timerObj.startTimeMS = localStorage.getItem('start_time');
                         console.log("ls otc");
                         //console.log("Going to locStorage to get start time");
@@ -362,18 +362,18 @@ function playGame_afterServerUpdate() { //called every second
                     let passedTime = Math.round( curTime - user.timerObj.startTimeMS );
                     let timeLeft = Math.round( (user.timerObj.timeoutNum / 1000) - passedTime ); //in sec
 
-                    if (timeLeft >= 20) {
+                    if (timeLeft >= 20 && divClock.innerHTML !== ("" + timeLeft) ) {
                         divClock.style.backgroundColor = "green";
                         divClock.innerHTML = timeLeft;
-                    } else if (timeLeft < 20 && timeLeft >= 10) {
+                    } else if (timeLeft < 20 && timeLeft >= 10 && divClock.innerHTML !== ("" + timeLeft)) {
                         divClock.style.backgroundColor = "orange";
                         divClock.innerHTML = timeLeft;
-                    } else if (timeLeft < 10 && timeLeft >= 0) {
+                    } else if (timeLeft < 10 && timeLeft >= 0 && divClock.innerHTML !== ("" + timeLeft)) {
                         divClock.style.backgroundColor = "red";
                         divClock.innerHTML = timeLeft;
                     } else if (timeLeft < 0) {
                         divClock.style.backgroundColor = "white";
-                        divClock.innerHTML = 40;
+                        divClock.innerHTML = '40';
                         autoPlay();
                     }
                     // - - - TIMER STUFF ***
@@ -387,9 +387,9 @@ function playGame_afterServerUpdate() { //called every second
                     document.getElementById("battleButton").style.display = "none";
                     document.getElementById("nineButton").style.display = "none";
                     //localStorage.setItem('onTheClock', "F"); //you are no longer on the clock
-                    if (divClock.style.backgroundColor !== "white" || divClock.innerHTML !== 40) { // reset clock
+                    if (divClock.style.backgroundColor !== "white" || divClock.innerHTML !== '40') { // reset clock
                         divClock.style.backgroundColor = "white";
-                        divClock.innerHTML = 40;
+                        divClock.innerHTML = '40';
                     }
                     user.hasPlayed = false; //reset hasPlayed bool
                     user.yourTurn_FirstCall = true;
@@ -418,9 +418,9 @@ function playGame_afterServerUpdate() { //called every second
                 //localStorage.setItem('onTheClock', "F"); //you are no longer on the clock
                 user.yourTurn_FirstCall = true;
                 let divClock = document.getElementById("clock");
-                if (divClock.style.backgroundColor !== "white" || divClock.innerHTML !== 40) { // reset clock
+                if (divClock.style.backgroundColor !== "white" || divClock.innerHTML !== '40') { // reset clock
                     divClock.style.backgroundColor = "white";
-                    divClock.innerHTML = 40;
+                    divClock.innerHTML = '40';
                 }
                 document.getElementById("foldButton").style.display = "none";
                 document.getElementById("passButton").style.display = "none";
@@ -435,9 +435,9 @@ function playGame_afterServerUpdate() { //called every second
         } else { //not in round
             user.yourTurn_FirstCall = true;
             let divClock = document.getElementById("clock");
-            if (divClock.style.backgroundColor !== "white" || divClock.innerHTML !== 40) { // reset clock
+            if (divClock.style.backgroundColor !== "white" || divClock.innerHTML !== '40') { // reset clock
                 divClock.style.backgroundColor = "white";
-                divClock.innerHTML = 40;
+                divClock.innerHTML = '40';
             }
             document.getElementById("foldButton").style.display = "none";
             document.getElementById("passButton").style.display = "none";
