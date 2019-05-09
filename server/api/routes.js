@@ -193,8 +193,8 @@ module.exports = app => {
                         let isRottenEgg = false;
                         let stillIn_count = 0;
 
-                        console.log(data.user);
-                        console.log(data.usersMove);
+                        //console.log(data.user);
+                        //console.log(data.usersMove);
 
                         if (!schema.isDerby) { //only set schema.isDerby if false, if schema.isDerby is true, want to keep it true until round ends
                             schema.isDerby = data.isDerby;
@@ -208,7 +208,7 @@ module.exports = app => {
                         schema.markModified(`dict_varData.${data.user}`); //save changes to dict_varData
 
                         if (data.usersMove[1] === "SW") {
-                            console.log("data.usersMove[1] === SW");
+                            //console.log("data.usersMove[1] === SW");
                             schema.dict_varData[data.user][4] = false; // they are not sandwiched bc they are out
                             schema.dict_varData[data.user][2] = false; // not their turn
                             schema.dict_varData[data.user][1] = false; // no longer in round
@@ -224,12 +224,13 @@ module.exports = app => {
                                 sandwichWaitOver = true;
                             }
                         } else if (data.isSandwich[0] === "T") { //person just sandwiched another person incoming data has isDerby set to true
-                            console.log("data.isSandwich[0] === T");
+                            //console.log("data.isSandwich[0] === T");
                             schema.sandwicher = data.user;
                             if (schema.isBattle) { // its already a battle
-                                console.log("Already a battle");
+                                //console.log("Already a battle");
                                 for (let i = 0; i < schema.battleStack_Players.length; i++) {
                                     if (schema.battleStack_Players[i] !== data.user) {
+                                        console.log(schema.battleStack_Players[i]);
                                         schema.dict_varData[schema.battleStack_Players[i]][4] = true; // they are sandwiched
                                         schema.dict_varData[schema.battleStack_Players[i]][2] = true; // set so they have chance to re-sand
                                         schema.markModified(`dict_varData.${schema.battleStack_Players[i]}`);
@@ -244,10 +245,10 @@ module.exports = app => {
                                 }
 
                                 if (data.isSandwich[3] === "RS") {
-                                    console.log("data.isSandwich[3] === RS  ,1");
+                                    //console.log("data.isSandwich[3] === RS  ,1");
                                     data.usersMove[3] = ['RS', schema.battleStack_Players.slice()]; //store replica in move
                                 } else { // normal sandwich
-                                    console.log("normal sandwich    ,1");
+                                    //console.log("normal sandwich    ,1");
                                     data.usersMove[3] = ['S', schema.battleStack_Players.slice()]; //store replica in move
                                 }
 
@@ -258,26 +259,39 @@ module.exports = app => {
                                 schema.battleStack_Players = []; //reset battleStack
                                 schema.battleStack_Moves = []; //reset battleStack
                             } else { //derby or normal so only 1 person is getting sandwiched = prev person
-                                console.log("derby or normal so only 1 person is getting sandwiched");
+                                //console.log("derby or normal, 1 person is got sandwiched but others could already be sandwiched");
+                                for (let key in schema.dict_varData) { //put everyone out
+                                    if (schema.dict_varData[key][4] === false) {
+                                        //console.log(key);
+                                        schema.dict_varData[key][2] = false; //set all peoples turn to false who are not currently sandwiched
+                                        schema.markModified(`dict_varData.${key}`); //save
+                                    }
+                                    /* error bc ... does not account for people currently sandwiched
+                                    if (schema.dict_varData[key][2] == true) {
+                                        schema.dict_varData[key][2] = false; //set all peoples turn to false (should only be 1 person)
+                                        schema.markModified(`dict_varData.${key}`); //save
+                                    }
+                                    */
+                                } //then put just-sandwiched person in
                                 schema.dict_varData[data.isSandwich[1]][4] = true; // they are sandwiched
                                 schema.dict_varData[data.isSandwich[1]][2] = true; // set so they have chance to resand
                                 schema.markModified(`dict_varData.${data.isSandwich[1]}`);
                                 if (data.isSandwich[3] === "RS" ) {
-                                    console.log("data.isSandwich[3] === RS    ,2");
+                                    //console.log("data.isSandwich[3] === RS    ,2");
                                     data.usersMove[3] = ['RS', [data.isSandwich[1]]]; //store replica in move
                                 } else { // normal sandwich
-                                    console.log("normal sandwich    ,2");
+                                    //console.log("normal sandwich    ,2");
                                     data.usersMove[3] = ['S', [data.isSandwich[1]] ]; //store person being sandwiched
                                 }
                             }
 
                             if (data.isSandwich[3] === "RS" ) { //reSandwich, data.sandwichStack.length < schema.sandwichStack.length
-                                console.log("data.isSandwich[3] === RS   ,3");
+                                //console.log("data.isSandwich[3] === RS   ,3");
                                 schema.dict_varData[data.user][4] = false; // you are not sandwiched
                                 schema.markModified(`dict_varData.${data.user}`);
                             }
-                            console.log(schema.dict_varData);
-                            console.log("out of sandwhich processing");
+                            //console.log(schema.dict_varData);
+                            //console.log("out of sandwhich processing");
                         }
 
                         //Battles, no sandwhiching
@@ -295,7 +309,7 @@ module.exports = app => {
                                         schema.dict_varData[key][2] = false;
                                         schema.markModified(`dict_varData.${key}`);
                                     } else {
-                                        console.log("still sanded: " + key);
+                                        //console.log("still sanded: " + key);
                                     }
                                 }
                             }
@@ -311,8 +325,7 @@ module.exports = app => {
 
                             data.usersMove[3] = ['B', [data.isBattle[1]] ]; //store person being battled
                             schema.cardPile.unshift(data.usersMove); //put move on top of cardPile (in front of array)
-                            //now wait for both of them to play their moves then show both
-
+                            //now wait for both peeps in battle to play their moves
                         } else if (schema.isBattle && data.usersMove[1] !== "SW") { //already was a battle, another person joined, >= 3 person battle
                             let ind = schema.battleStack_Players.indexOf(data.user);
                             if ( ind < 0 ) { //not already in battle, via battle button
@@ -367,7 +380,6 @@ module.exports = app => {
                                 }
                             }
                             // ...wait for all people in battle to play their moves
-                            console.log("...waiting for peeps in battle to play their moves");
                         //Normal or Derby, no battle or sandwich
                         } else { //NOT A BATTLE, normal or Derby , one person plays at a time
                             if (schema.isDerby) {
@@ -453,7 +465,9 @@ module.exports = app => {
                             }
                         }
 
-                        //
+                        //console.log("Move processing is done...");
+                        //console.log(schema.dict_varData);
+                        //console.log("deck, score, next up stuff...");
                         if (data.isSandwich[0] !== "T" && data.usersMove[1] !== "SW" || (data.usersMove[1] === "SW" && sandwichWaitOver) ){
                             //everything/code comes back here no matter if battle, derby or normal
                             if (!schema.isBattle || battleOver || derbyOver) { //only skip over if in battle/waiting for people to play their battle moves
@@ -609,6 +623,8 @@ module.exports = app => {
                         } //else {
                             // sandwich wait is not over...
                         //}
+                        //console.log("end.");
+                        //console.log(schema.dict_varData);
                         await schema.save();
                         res.status(200).send({});
                     } catch (err) {
@@ -714,7 +730,7 @@ module.exports = app => {
             if (err) {
                 res.status(500).send({error: "/deleteRoom - error"});
             } else {
-                console.log("del: " + req.body.roomID);
+                //console.log("del: " + req.body.roomID);
                 res.status(200).send({});
             }
         });
@@ -727,7 +743,7 @@ module.exports = app => {
                 res.status(500).send({error: "/leftRoom - error"});
             } else {
                 try {
-                    console.log("In left room");
+                    //console.log("In left room");
                     schema.leavingAlert = req.body.user;
                     await schema.save();
                     res.status(200).send({});
@@ -748,9 +764,6 @@ function makeDeck(numDecks) { //14 is for the 2 jokers
     let deck = ['2c', '2d', '2h', '2s', '3c', '3d', '3h', '3s', '4c', '4d', '4h', '4s', '5c', '5d', '5h',
     '5s', '6c', '6d', '6h', '6s', '7c', '7d', '7h', '7s', '8c', '8d', '8h', '8s', '9c', '9d', '9h', '9s', '10c', '10d', '10h',
     '10s', '11c', '11d', '11h', '11s', '12c', '12d', '12h', '12s', '13c', '13d', '13h', '13s', '14j', '14j', '15c', '15d', '15h', '15s'];
-
-
-    //let deck = ['2c', '2d', '2h', '2s', '3c', '3d', '3h', '3s', '4c', '4d']; //10
 
     for (let i = 0; i < numDecks; i++) {
         sumDeck = sumDeck.concat(deck);
@@ -792,11 +805,15 @@ function whoWonBattle(battleStack_Moves, higherIsBetter) {
         if (battleStack_Moves[i][1] === "play") {
             plays.push(battleStack_Moves[i]); //
         } else if (battleStack_Moves[i][1] === "wild") { //wild 9 was played, update higherIsBetter, will affect battle result
+            higherIsBetter = !higherIsBetter;
+            //console.log("Now HIB: " + higherIsBetter);
+            /*
             if (battleStack_Moves[i][0][0] === "wild_H") {
                 higherIsBetter = true;
             } else {
                 higherIsBetter = false;
             }
+            */
         }
     }
     let winner = [];

@@ -9,7 +9,7 @@ Client displays data and sends server info on a players move.
 2.) Client continuously grabs data from server once game starts.
 3.) Client sends data to server only after user finishes his/her turn.
     Client never updates its own data (protects against race conditions), instead, sends tmp data to server and server will eventually update clients data
-4.) Server does calculations upon receiving data from client
+4.) Client does all move validation, Server does all other calculations upon receiving data from client (turns, score, dealing...)
 
 so circle: server (data)-> client,    if clients turn/turn just finishes (data)-> server
 */
@@ -124,6 +124,7 @@ window.onload = () => {
                 if (user.startGame) { //also init timer stuff
                     clearInterval(waitToStartGame_interv); //interval is stopped -> startGame is true -> everyone is here and lord pressed start button
                     setHand();
+                    document.getElementById("round_winner").innerHTML = "";
                     user.timerObj.keepUpdating = setInterval(playGame_keepUpdatingFromServer, 200); //this starts game. goes every .2sec
                 }
         });
@@ -180,9 +181,13 @@ function scoreboard(server_dict_varData) {
             }
         }
         //whos turn update
-        if (server_dict_varData[key][2] !== user.dict_varData[key][2]) {
+        if (server_dict_varData[key][2] !== user.dict_varData[key][2] || server_dict_varData[key][4] !== user.dict_varData[key][4]) {
             let div_ = document.getElementById("sb_" + key);
-            if (server_dict_varData[key][2]) {
+            if (server_dict_varData[key][4]) {
+                div_.style.borderStyle = "solid";
+                div_.style.borderWidth = "10px";
+                div_.style.borderColor = "orange";
+            } else if (server_dict_varData[key][2]) {
                 div_.style.borderStyle = "solid";
                 div_.style.borderWidth = "10px";
                 div_.style.borderColor = "gold";
@@ -291,7 +296,7 @@ function playGame_afterServerUpdate() { //called every second
                 if (user.yourTurn_FirstCall) { //the first and only time this will execute when its your turn
                     // - - - TIMER STUFF ***
                     if (user.dict_varData[user.username][4]) { //you have been sandwiched
-                        user.timerObj.timeoutNum = 12000; //12 seconds to play
+                        user.timerObj.timeoutNum = 15000; //15 seconds to play
                     } else {
                         user.timerObj.timeoutNum = 40000; //40 seconds to play
                     }
@@ -714,7 +719,9 @@ function fold() { //should not appear during a derby
 //if 9 is chossen to be played as a wild card 9
 function nine() { // should only appear if 1 nine is selected not during a derby
     let isHigher = user.higherIsBetter
-    if (user.dict_varData[user.username][2]) {
+    if (user.dict_varData[user.username][4]) {
+        alert("Not playable. Must play the same card opponent played.");
+    } else if (user.dict_varData[user.username][2]) {
         let lastPlay = '';
         for (let i = 0; i < user.cardPile.length; i++) {
             if (user.cardPile[i][1] === 'play') { //the card(s) that the user must beat
@@ -724,10 +731,10 @@ function nine() { // should only appear if 1 nine is selected not during a derby
         }
         if ( (user.isDerby && user.isBattle) || (!user.isDerby) ) { //not a derby
             if (isHigher) {
-                document.getElementById("value").innerHTML = "Lower";
+                //document.getElementById("value").innerHTML = "Lower";
                 isHigher = "wild_L";
             } else {
-                document.getElementById("value").innerHTML = "Higher";
+                //document.getElementById("value").innerHTML = "Higher";
                 isHigher = "wild_H";
             }
             user.playedMove_toServ = [[isHigher], 'wild', user.username, []];

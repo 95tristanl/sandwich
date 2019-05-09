@@ -1,3 +1,12 @@
+h1 {
+    padding: 0 0 0 0px;
+    margin: 0 0 0 0px;
+}
+
+h2 {
+    padding: 0 0 0 0px;
+    margin: 0 0 0 0px;
+}
 
 p {
     color: black;
@@ -72,14 +81,15 @@ p {
 
 #nav_ul {
     list-style-type: none;
-    margin: 0;
-    padding: 0;
+    margin: 0px 0px 0px 0px;
+    padding: 0px 0px 0px 0px;
     overflow: hidden;
 }
 
 .nav_li {
     float: left;
-    padding: 0px 20px;
+    padding: 10px 20px 10px 20px;
+    margin: 0px 0px 0px 0px;
 }
 
 #color_title {
@@ -106,20 +116,12 @@ p {
     background-color: #9800FF;
 }
 
+#color_sandwich {
+    background-color: #EAA754;
+}
+
 #color_pass {
-    background-color: #EAA754;
-}
-
-#cardPile_title {
-    background-color: #EAA754;
-    border-radius: 50px;
-    width: 200px;
-    height: 60px;
-}
-
-#cardPile_h {
-    text-align: center;
-    line-height: 60px;
+    background-color: orange;
 }
 
 .bottons {
@@ -239,14 +241,30 @@ p {
 #round_title {
     background-color: #7F7C6A;
     border-radius: 50px;
-    height: 60px;
-    padding-left: 20px;
-    padding-right: 20px;
+    padding: 10px 10px 10px 10px;
+    margin-left: 10px;
+    flex-direction: row;
 }
 
 #round_winner {
     background-color: #7F7C6A;
-    line-height: 60px;
     margin-left: 20px;
     margin-right: 20px;
+}
+
+#cardPile_title {
+    background-color: #EAA754;
+    border-radius: 50px;
+    flex-direction: row;
+    padding: 10px 10px 10px 10px;
+}
+
+#cardPile_h {
+    text-align: center;
+}
+
+#cardPile_title_table {
+    margin: 10px 0px 0px 0px;
+    padding: 0px 0px 0px 0px;
+    display: flex;
 }
