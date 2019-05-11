@@ -65,9 +65,11 @@ If you get/are sandwiched and you have another of that same card or a joker you 
 
 After a player/players are knocked out by getting sandwiched, play continues clockwise from the person who played last: this is the sandwicher. The next person then just has to beat the last card/cards played, not the entirety of what the sandwicher played if there were multiple plays between players during the sandwich episode. So, if you play a 5, another person plays 2 5's, you play a 5, the next person only has to beat a 5. If you play a 5, another person plays 2 5's, you play 2 5's (still a sandwich) now its a {Derby} and the next person has to beat 2 5's.
 
+- - - - - - - - - - - - 
 
 Gameplay examples:
 
+- - - - - - - - - - - - 
 
 Example #1, 3 person normal gameplay (no derby, battle, or sandwich):
 
@@ -87,10 +89,11 @@ Player #2 now has to beat himself since he played last valued card. He cannot pl
 
 Player #1 plays an {Ace} and wins the pile automatically, he now has a score of 6 for the number of cards in the pile he won(wild 9 and folded cards count), and he will start next round.
 
-
+- - - - - - - - - - - - 
 
 Example #2, 3 person gameplay (derby):
 
+- - - - - - - - - - - - 
 
 Player #1 starts round with a Jack. 
 
@@ -110,10 +113,11 @@ Player #2 passes.
 
 Player #3 is up but his 3 4s are last played so he wins 8 points (passes do not count as points).
 
-
-
+- - - - - - - - - - - - 
 
 Example #3 of 4 person gameplay (sandwiching and battle):
+
+- - - - - - - - - - - - 
 
 Player #1 starts round with a 4. 
 
