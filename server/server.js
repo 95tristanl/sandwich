@@ -11,8 +11,6 @@ var bodyParser = require("body-parser");
 
 const setupServer = async () => {
     let app = express();
-    //let server = http.createServer(app);
-
     app.use(express.static(`${__dirname}/../client`));
     app.use(bodyParser.urlencoded({ extended: false }));
     app.use(bodyParser.json());
@@ -41,5 +39,5 @@ const setupServer = async () => {
         console.log('Started on 4000');
     });
 };
-// Run the server
-setupServer();
+
+setupServer(); // Run the server

@@ -603,8 +603,6 @@ function play() {
                 for (let i = 0; i < user.cardPile.length; i++) {
                     if (user.cardPile[i][1] === 'play') { //the card(s) that the user must beat (dont need to beat a fold, pass or wild)
                         lastPlay = user.cardPile[i][0];
-                        //console.log('lastPlay');
-                        //console.log(lastPlay);
                         lastFoe = user.cardPile[i][2]; //last person to 'play' a normal card (not a fold, pass, or wild)
                         break; //only look for 'play' cards, not wild, pass, fold, etc.
                     }
@@ -658,10 +656,16 @@ function play() {
                         alert("Its a Derby. You need to play more cards!");
                     } else if (user.cardSelectedStack.length > lastPlay.length && lastPlay.length > 1 ||
                                user.cardSelectedStack.length > lastPlay.length && lastPlay.length === 1 && user.higherIsBetter && usersCard >= lastPlayedCard ||
-                               user.cardSelectedStack.length > lastPlay.length && lastPlay.length === 1 && !user.higherIsBetter && usersCard <= lastPlayedCard) {
-                        user.isDerby_toServ = true;
-                        if (usersCard === lastPlayedCard) { //valid
-                            user.isSandwich_toServ = ["T", lastFoe, usersCard, ""];
+                               user.cardSelectedStack.length > lastPlay.length && lastPlay.length === 1 && !user.higherIsBetter && usersCard <= lastPlayedCard )
+                        {
+                        if (usersCard === lastPlayedCard && (whoPlayedLast === user.username || lastFoe === user.username) ) {
+                            playable = false;
+                            alert("Can't sandwich yourself!");
+                        } else {
+                            user.isDerby_toServ = true;
+                            if (usersCard === lastPlayedCard) { //valid
+                                user.isSandwich_toServ = ["T", lastFoe, usersCard, ""];
+                            }
                         }
                     } else { // should never get here...
                         playable = false; // not valid
