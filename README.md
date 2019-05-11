@@ -7,24 +7,24 @@ Sandwich was originally created for 2-3-4-5 player games, but it can be played w
 
 - - - - - - - - - - - - 
 
-Object of the game: 
+-Object of the game: 
 Win the most amount of cards or get to the objective set amount of cards first (say you play first to win 50 cards). 
 Win cards by winning play piles. Number of cards in the pile won = the number of cards added to your score.
 
-Set up: 
+-Set up: 
 Each player starts off with your choice of hand size, 10 or 12 cards is normal. You also need to set a refuel number so that, after a round, players with the refuel amount of cards remaining in their hand can grab more from the deck until they have the hand-size number. A standard refuel number is half the hand size plus a card or two, so starting with 12 cards I would use 7 as a refuel number (for say 15 I'd do 8 or 9).
 
-Directions:
+-Directions:
 To start the game everybody participates in a {Battle} (in the app though, the person who creates the room starts the game). After, follow {Order of Play} and {normal play} begins. Higher cards are better to start the game. When playing with a 12 card starting hand and after a round you find yourself with 7 cards or less, you {Refuel}. {Refueling} only takes place after the round is over/before the next round. Winner of the previous round plays first/starts the next round. Play always goes clockwise, and always continues clockwise from whoever played last. The winner is the last person still in who hasn't {Folded} or been knocked out by a {Sandwich}. If so he/she wins the round, he/she adds the total amount of cards from the pile to their score. The winner then plays first in the next hand. Winner of the game is first to reach a decided score tally or have the highest score once the deck runs out and there aren’t two players who can play anymore. When/if there is one person left with cards in their hand at the end of the game, he/she does not add those cards to his/her score. To start a round a single card must be played. You CANT start a round by playing more than 1 card: a {Derby}. 
 
 - - - - - - - - - - - - 
 
-Refuel:
+-Refuel:
 If the game started with 12 cards per person then once you have the refuel number of cards in your hand, take turns picking cards from the deck until everyone who needed to {refuel} has the starting amount.
 
 - - - - - - - - - - - - 
 
-Normal Play: 1 card play where {folding} is present
+-Normal Play: 1 card play where {folding} is present
 The normal sequence of play is to go clockwise from the winner of the last round. Each player has to play a better card then the last person. When it is your turn you have exactly 4 options: 
 #1 you can play a better card then the previous card.
 #2 play a card of the same value: this means you initiate a {Battle} or a {Sandwich} if you play multiple cards of the same value of the last card played.
@@ -33,37 +33,37 @@ The normal sequence of play is to go clockwise from the winner of the last round
 
 - - - - - - - - - - - - 
 
-Folding:
+-Folding:
 If a player cannot beat, or does not want to play/beat the previous single card he must fold and is knocked out of the round. This is done by playing one or many cards from his hand face down on the deck (folding many cards can be strategic for refueling/building a better hand).
 
 - - - - - - - - - - - - 
 
-Battling:
+-Battling:
 If the card played is of the same value as the previous card it is a {Battle}. When a {Battle} occurs, both players choose one card and lay it face down before showing their card to their opponent. Best card wins depending on the game value. If the cards are of the same value, {Battle} again. If three people participate, but only two play cards that are of the same value and both are tied for the best, better than the third person's, the two players play in another battle while the third person gets knocked out. You can {Battle} someone even if it is not your turn (just play your card of the same value that was just played). More than 2 people can participate in a {Battle}. In a {Derby} If two or more people lay down doubles or triples or more of the same value then they battle using just one card as usual. In a {Derby} you can {Battle} someone out of turn. 
 
 - - - - - - - - - - - - 
 
-Derby: no {folding}, just playing and {passing}
+-Derby: no {folding}, just playing and {passing}
 A Derby occurs when someone has 2, 3, 4 or more of the same valued card in their hand. Once a Derby is started there is no {Folding} order of play continues clockwise (there can be {battles}) and each player has two options: either play or say 'pass'. If you pass you are still in the round, you are just electing not to play, however, if people continue to pass and it gets back to the person who's cards are currently the last played/on top of the pile, then the Derby is over and he/she wins. You CANT use a {wild 9} in a {Derby} and you CANT start a round with a {Derby}. Any triples beats any doubles, any quadruples (4 of a kind) beats any triples or doubles and so on, but, in order to start a {Derby} the value of the cards you are playing must be better than the card previously played (no matter how many cards you play): if a five was played last and higher cards are better, one cannot play two 4s or three 2s, two or three 6s would work. {Aces} automatically win the {Derby} and pile if the same or more are played: 3 8s are played cant play 1 or 2 aces, need 3 (or more if you want).
 
 - - - - - - - - - - - - 
 
-The Nine: 
+-The Nine: 
 If a 9 is played, it can act as a regular nine, or, it can be played as a wild card that changes the value of play: making lower cards better than higher cards or higher cards better than lower cards: always the opposite of what it was. (a wild 9 has to switch the order of value, you CANT have higher cards be better, play a wild 9, and say higher cards are still better). When a 9 is used as wild, it has no value and even though it acts as your turn, it is not the card the next person has to beat: the card played before the wild 9 was played becomes the card the current player must beat. Basically you can play them anytime, on any single card, except on an {Ace} or during a {derby}. You can also play them in a {Battle}, you will just never win but you will be able to switch the direction. If higher cards are better and, before anyone flips their cards you announce your card is a wild 9, you switch direction. This does influence the outcome of a {Battle} if more than 2 people participate in the {Battle}: if higher cards are better and you play a wild 9 and player #2 plays an 8 and player #3 plays a 10, player #2 wins because of the switch. The wild 9's value switch stays in effect for the rest of the game until the value is switched again by another wild 9 (continues across rounds). Wild 9s cannot be battled with another {wild 9} since they hold no value so if two people are {Battling} and the both play wild 9s (in real life this probably wouldn't happen since after the first person announced their 9 is wild the second would keep their 9 normal so they win the {Battle}) nobody wins, its a tie, and the direction is not switched since the wild 9s switching cancels out since 2 are played. 
 
 - - - - - - - - - - - - 
 
-The Ace:
+-The Ace:
 The ace beats any single card (regardless of higher or lower value, it beats a king in higher play and 2 in lower play) and automatically wins any pile on the spot when played. You CANT battle an ace when an it is played outside a {Battle}. Aces can only {Battle} when they are flipped up in a {Battle}. An {Ace} cannot beat doubles unless you have 2 aces, same with triples and so on. If multiple are played in a {Derby} then they automatically win the round on the spot. 
 
 - - - - - - - - - - - - 
 
-The Joker:
+-The Joker:
 Can take on any value 2 through king. Cannot become a {wild 9} or {Ace}. Can also be used as a rotten egg: if {Folded} (obviously, secretly), after the round ends reveal it and no one wins the card pile. You can play the rotten egg in a battle but you have to specify that its an egg before flipping.
 
 - - - - - - - - - - - - 
 
-Sandwiching: the most annoying and fun part of the game
+-Sandwiching: the most annoying and fun part of the game
 Making a Sandwich:
 There are two ways to {Sandwich} another player/multiple players: 
 
@@ -73,10 +73,8 @@ There are two ways to {Sandwich} another player/multiple players:
 
 A sandwich occurs when two or more of the same card surround another card of that same value, or are on top of a card of that same value. A sandwich does not occur if a different valued card takes place: you play a 7, next person plays an 8 and you playing another 7 is not possible/not a sandwich because your 7 is not the same value as the last played 8 so you cannot play out of turn/{Battle} that person: a sandwich is basically a modified {Battle}.
 
-Un/re-sandwiching:
-If you get/are sandwiched and you have another of that same card or a joker you can play it and you not only become un-sandwiched but you sandwich that other player: you play a 5, another person plays 2 5's, you play a 5: that person is sandwiched because your 5s wrap around his even though you have both played the same number of 5s, you could even re-sandwich with 2 5's and start a {Derby}. If you fail to re-sandwich, you are knocked out.
-
-After a player/players are knocked out by getting sandwiched, play continues clockwise from the person who played last: this is the sandwicher. The next person then just has to beat the last card/cards played, not the entirety of what the sandwicher played if there were multiple plays between players during the sandwich episode. So, if you play a 5, another person plays 2 5's, you play a 5, the next person only has to beat a 5. If you play a 5, another person plays 2 5's, you play 2 5's (still a sandwich) now its a {Derby} and the next person has to beat 2 5's.
+-Un/re-sandwiching:
+If you get/are sandwiched and you have another of that same card or a joker you can play it and you not only become un-sandwiched but you sandwich that other player: you play a 5, another person plays 2 5's, you play a 5: that person is sandwiched because your 5s wrap around his even though you have both played the same number of 5s, you could even re-sandwich with 2 5's and start a {Derby}. If you fail to re-sandwich, you are knocked out. After a player/players are knocked out by getting sandwiched, play continues clockwise from the person who played last: this is the sandwicher. The next person then just has to beat the last card/cards played, not the entirety of what the sandwicher played if there were multiple plays between players during the sandwich episode. So, if you play a 5, another person plays 2 5's, you play a 5, the next person only has to beat a 5. If you play a 5, another person plays 2 5's, you play 2 5's (still a sandwich) now its a {Derby} and the next person has to beat 2 5's.
 
 - - - - - - - - - - - - 
 
