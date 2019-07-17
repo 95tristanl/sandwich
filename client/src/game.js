@@ -98,13 +98,20 @@ window.onload = () => {
                         var td_ = document.createElement("td");
                         var div_ = document.createElement("div");
                         div_.style.backgroundColor = "green";
-                        div_.style.width = "100px";
-                        div_.style.height = "75px";
+                        //div_.style.width = "100px";
+                        div_.style.height = "70px";
                         div_.style.color = "black";
                         div_.style.textAlign = "center";
                         div_.style.verticalAlign = "middle";
                         div_.style.lineHeight = "20px";
-                        div_.style.borderRadius = "20px";
+                        div_.style.borderRadius = "15px";
+                        div_.style.fontFamily = "geneva";
+                        div_.style.paddingTop = "5px";
+                        div_.style.paddingLeft = "8px";
+                        div_.style.paddingRight = "8px";
+                        div_.style.borderStyle = "solid";
+                        div_.style.borderWidth = "2px";
+                        div_.style.borderColor = "black";
                         div_.innerHTML = key + "<br />" + "Cards: " + user.hand.length + "<br />" + "score: 0"; //players name and score
                         div_.id = "sb_" + key;
                         document.getElementById("peeps_R").appendChild(td_).appendChild(div_);
@@ -162,12 +169,18 @@ function scoreboard(server_dict_varData) {
 
     if (!user.isBattle && !user.isDerby && pt_div.style.backgroundColor !== "limegreen") { //normal
         pt_div.style.backgroundColor = "limegreen";
+        pt_div.style.fontFamily = "geneva";
+        pt_div.style.lineHeight = "42px";
         pt_div.innerHTML = "Normal";
     } else if (user.isBattle && pt_div.innerHTML !== "Battle!!") {
         pt_div.style.backgroundColor = "deepskyblue";
+        pt_div.style.fontFamily = "geneva";
+        pt_div.style.lineHeight = "42px";
         pt_div.innerHTML = "Battle!!";
     } else if (user.isDerby && !user.isBattle && pt_div.innerHTML !== "Derby!") {
         pt_div.style.backgroundColor = "blueviolet";
+        pt_div.style.fontFamily = "geneva";
+        pt_div.style.lineHeight = "42px";
         pt_div.innerHTML = "Derby!";
     }
 
@@ -185,11 +198,12 @@ function scoreboard(server_dict_varData) {
             let div_ = document.getElementById("sb_" + key);
             if (server_dict_varData[key][4]) {
                 div_.style.borderStyle = "solid";
-                div_.style.borderWidth = "10px";
+                div_.style.borderWidth = "5px";
                 div_.style.borderColor = "orange";
+
             } else if (server_dict_varData[key][2]) {
                 div_.style.borderStyle = "solid";
-                div_.style.borderWidth = "10px";
+                div_.style.borderWidth = "5px";
                 div_.style.borderColor = "gold";
             } else {
                 div_.style.borderStyle = "solid";
@@ -288,7 +302,7 @@ function playGame_keepUpdatingFromServer() { //called every timestep (some amoun
 }
 
 
-//continuous functionality of client if its his turn or not
+//continuous functionality of client if it is his turn or not
 function playGame_afterServerUpdate() { //called every second
     if(user.end_round === "false") { //instead of using a while loop, use an interval
         if (user.dict_varData[user.username][1]) { // still in?
@@ -298,7 +312,7 @@ function playGame_afterServerUpdate() { //called every second
                     if (user.dict_varData[user.username][4]) { //you have been sandwiched
                         user.timerObj.timeoutNum = 15000; //15 seconds to play
                     } else {
-                        user.timerObj.timeoutNum = 40000; //40 seconds to play
+                        user.timerObj.timeoutNum = 45000; //45 seconds to play
                     }
                     /*
                     if (localStorage.getItem('onTheClock') === "T") { //exited window or something ... ? bc 'onTheClock' should be false at this point
@@ -797,6 +811,7 @@ function setHand() {
         div_.style.borderRadius = "15px";
         let card_IMG = document.createElement("IMG");
         card_IMG.setAttribute("src", `/images/${user.hand[j]}.png`);
+        card_IMG.className = "imgInHand";
         if (user.hand[j] == "14j") {
             div_.style.width = "95px";
             div_.style.height = "120px";

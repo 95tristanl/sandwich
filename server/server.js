@@ -15,12 +15,12 @@ const setupServer = async () => {
     app.use(bodyParser.urlencoded({ extended: false }));
     app.use(bodyParser.json());
 
-    // Connect to MongoDB
     try {
         //await mongoose.connect("mongodb://localhost:27017/leveiltt"); //mongo on aws or some box
         //console.log("MongoDB connected: mongodb://localhost:32768/leveiltt"); //kitematic
-        await mongoose.connect("mongodb://localhost:27017/leveiltt", {useNewUrlParser: true});
-        console.log("MongoDB connected: mongodb://localhost:27017/leveiltt"); //kitematic
+        let connectionString = "mongodb://localhost:32768/sandwich";
+        await mongoose.connect(connectionString, {useNewUrlParser: true});
+        console.log("MongoDB connected on: " + connectionString);
     } catch (err) {
         //console.log(err);
         console.log("Could not connect to mongo...");
@@ -35,8 +35,9 @@ const setupServer = async () => {
     // Import routes
     require("./api/routes")(app); //pass Data Model into routes
 
-    app.listen(4000, () => { //4000 for aws ,  8080 server.listen for localhost
-        console.log('Started on 4000');
+    let port = 8080;
+    app.listen(port, () => { //4000 for aws, 8080 for localhost
+        console.log("Server started on: " + port);
     });
 };
 

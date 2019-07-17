@@ -1,22 +1,142 @@
-h1 {
+h1, h2, h3, h4, h5, p {
     padding: 0 0 0 0px;
     margin: 0 0 0 0px;
-}
-
-h2 {
-    padding: 0 0 0 0px;
-    margin: 0 0 0 0px;
-}
-
-p {
     color: black;
+    font-family: geneva;
+    font-weight: normal;
+}
+
+body {
     padding: 0 0 0 0px;
     margin: 0 0 0 0px;
+}
+
+.navbar {
+    height: 60px;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    background-color: #EAA754;
+    padding: 0px 0px 0px 0px;
+}
+
+.navbar_blackbar {
+    width: 7px;
+    background-color: black;
+}
+
+#color_bar {
+    width: 20px;
+    height: 60px;
+    background-color: black;
+    padding: 0px 1px 0px 1px;
+}
+
+.navbar_title {
+    padding: 10px 20px 10px 20px;
+}
+
+.nav_info {
+    background-color: #EAA754;
+    color: black;
+    text-align: center;
+    vertical-align: middle;
+    line-height: 20px;
+    padding: 8px 10px 0px 10px;
+    margin: 0px 0px 0px 0px;
+}
+
+.imgInHand:hover {
+    cursor: pointer;
+}
+
+/* Client */
+.formsContainer {
+    display: flex;
+    background-color: pink;
+    padding: 10px 10px 10px 10px;
+}
+
+.createRoom_div {
+    background-color: green;
+    padding: 10px 10px 10px 10px;
+    border-radius: 20px;
+    margin-right: 10px;
+}
+
+.createRoom_form {
+    display: flex;
+    flex-direction: column;
+    background-color: purple;
+    border-radius: 12px;
+    padding: 10px 0px 10px 0px;
+}
+
+.joinRoom_div {
+    background-color: orange;
+    padding: 10px 10px 10px 10px;
+    border-radius: 20px;
+}
+
+.joinRoom_form {
+    display: flex;
+    flex-direction: column;
+    background-color: blue;
+    border-radius: 12px;
+    padding: 10px 10px 10px 10px;
+}
+
+.inputField {
+    margin: 2px 15px 2px 15px;
+    width: 200px;
+    height: 20px;
+    border-radius: 6px;
+    border: 1px solid black;
+}
+
+.inputField:focus { outline: 0; }
+
+.inputField:hover {
+    margin: 2px 10px 2px 10px;
+    width: 208px;
+    height: 18px;
+    border-radius: 8px;
+    border: 2px solid #00D9FF;
+}
+
+.btn {
+    width: 150px;
+    height: 20px;
+    border-radius: 6px;
+    border: 1px solid black;
+    margin: 2px 0px 2px 40px;
+    background-color: silver;
+}
+
+.btn:hover {
+    width: 160px;
+    height: 20px;
+    border-radius: 8px;
+    border: 2px solid black;
+    margin: 2px 0px 2px 35px;
+    background-color: white;
+    cursor: pointer;
+}
+
+.btn:focus { outline: 0; }
+/* Client */
+
+
+.container {
+    padding: 10px 10px 0px 10px;
+    margin: 10px 10px 10px 10px;
+    border: 5px solid black;
+    border-radius: 15px;
 }
 
 .cardPileDivs {
-    border-radius: 20px;
-    padding: 10px 10px 10px 10px;
+    border-radius: 15px;
+    padding: 8px 10px 8px 10px;
     margin: 10px 5px 10px 5px;
     color: white;
     vertical-align: middle;
@@ -38,30 +158,19 @@ p {
 .cardPileImages {
     width: 65px;
     height: 92px;
+    animation-name: cardPileImage_animation;
+    animation-duration: 1s;
 }
 
-.waitBoard {
-    background-color: #EAA754;
-    width: 100px;
-    height: 50px;
-    color: black;
-    text-align: center;
-    vertical-align: middle;
-    margin: 5 5 5 5px;
-    line-height: 20px;
-    border-radius: 8px;
-}
-
-.info {
-    background-color: #EAA754;
-    width: 100px;
-    height: 50px;
-    color: black;
-    text-align: center;
-    vertical-align: middle;
-    margin: 20 20 20 20px;
-    line-height: 20px;
-    border-radius: 8px;
+@keyframes cardPileImage_animation {
+  0% {
+      width: 0px;
+      height: 0px;
+  }
+  100% {
+      width: 65px;
+      height: 92px;
+  }
 }
 
 #separator {
@@ -114,10 +223,6 @@ p {
 
 #color_derby {
     background-color: #9800FF;
-}
-
-#color_sandwich {
-    background-color: #EAA754;
 }
 
 #color_pass {
@@ -208,12 +313,13 @@ p {
 #chat_div {
     background-color: #EAA754;
     border-radius: 10px;
+    margin-top: 5px;
 }
 
 #chat_input {
     width: 500px;
     height: 30px;
-    border-radius: 20px;
+    border-radius: 15px;
     border: 4px solid black;
     font-size: 15px;
 }
@@ -223,19 +329,38 @@ p {
     color: purple;
 }
 
+.peeps_and_clock {
+    display: flex;
+    justify-content: space-between;
+}
+
+.clock_div {
+    display: flex;
+    align-items: center;
+    margin-right: 25px;
+    border: 3px dashed black;
+    border-radius: 15px;
+    padding: 0px 8px 0px 8px;
+}
+
 #clock {
+    background-color: #EAA754;
+    text-align: center;
+    vertical-align: middle;
     border-radius: 30px;
-    line-height: 45px;
-    border: 4px solid black;
+    line-height: 43px;
+    border: 3px solid black;
     font-size: 20px;
-    width: 50px;
-    height: 50px;
+    width: 45px;
+    height: 45px;
+    color: black;
 }
 
 #clock_text {
     background-color: #7F7C6A;
     font-size: 35px;
     line-height: 45px;
+    margin-right: 10px;
 }
 
 #round_title {
@@ -252,9 +377,10 @@ p {
     margin-right: 20px;
 }
 
-#cardPile_title {
+.cardPile_yourHand_title {
+    display: flex;
     background-color: #EAA754;
-    border-radius: 50px;
+    border-radius: 15px;
     flex-direction: row;
     padding: 10px 10px 10px 10px;
 }
@@ -267,4 +393,8 @@ p {
     margin: 10px 0px 0px 0px;
     padding: 0px 0px 0px 0px;
     display: flex;
+}
+
+#playType {
+    font-family: geneva;
 }

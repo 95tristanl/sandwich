@@ -1,6 +1,6 @@
 /**
  * Created by TristanLeVeille on 7/31/18.
- */
+**/
 "use strict";
 
 //var sessionstorage = require('sessionstorage');

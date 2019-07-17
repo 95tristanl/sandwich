@@ -2,147 +2,134 @@
 <html lang="en">
 
 <head>
-    <title>Trump</title>
+    <title>King of the Hill</title>
     <link rel="stylesheet" href="styles/main.css">
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
 </head>
 
-<body class="container-fluid" id="html_body">
+<body id="html_body">
 
-    <ul id="nav_ul">
-        <li class="nav_li" id="color_title"><h1 class="nav_h1">Trump: The Card Game</h1></li>
-        <li class="nav_li" id="color_egg"><h1 class="nav_h1">Egg</h1></li>
-        <li class="nav_li" id="color_fold"><h1 class="nav_h1">Fold</h1></li>
-        <li class="nav_li" id="color_play"><h1 class="nav_h1">Play</h1></li>
-        <li class="nav_li" id="color_pass"><h1 class="nav_h1">Pass</h1></li>
-        <li class="nav_li" id="color_battle"><h1 class="nav_h1">Battle</h1></li>
-        <li class="nav_li" id="color_derby"><h1 class="nav_h1">Derby</h1></li>
-        <li class="nav_li" id="color_sandwich"><h1 class="nav_h1">Sandwich</h1></li>
-    </ul>
-
-    <table>
-        <tr>
-            <td>
-                <div class="waitBoard">
-                    <p>Capacity:</p>
-                    <p id="p3"></p>
-                </div>
-            </td>
-            <td>
-                <div class="waitBoard">
-                    <p>Deck Size:</p>
-                    <p id="p4"></p>
-                </div>
-            </td>
-            <td>
-                <div class="waitBoard">
-                    <p>Hand Size:</p>
-                    <p id="p5"></p>
-                </div>
-            </td>
-            <td>
-                <div class="waitBoard">
-                    <p>Refuel At:</p>
-                    <p id="p6"></p>
-                </div>
-            </td>
-            <td>
-                <div class="info" id="separator"></div>
-            </td>
-            <td>
-                <div class="info" id="playType">Normal</div>
-            </td>
-            <td>
-                <div class="info">
-                    <p>Cards Left:</p>
-                    <p id="cardDeck"></p>
-                </div>
-            </td>
-            <td>
-                <div class="info">
-                    <p id="roundLog_winner">No winner</p>
-                    <p id="roundLog_score">yet ...</p>
-                </div>
-            </td>
-            <td>
-                <div class="info" id="hisb">
-                    <p id="value">Higher</p>
-                    <p>is better</p>
-                </div>
-            </td>
-            <td>
-                <div class="info" id="clock_text">Timer:</div>
-            </td>
-            <td>
-                <div class="info" id="clock">40</div>
-            </td>
-        </tr>
-    </table>
-
-    <table id="peeps_T">
-        <tr id="peeps_R"></tr>
-    </table>
-
-    <div id="cardPile_title_table">
-        <div id="cardPile_title"><h2 id="cardPile_h">Card Pile:</h2></div>
-        <div id="round_title"><h2 id="round_winner">The game has not begun yet.</h2></div>
-    </div>
-
-    <div>
-        <table id="cardPile_T">
-            <tr id="cardPileRow"> </tr>
-        </table>
-    </div>
-
-    <div>
-        <table>
-            <tr>
-                <td>
-                    <h1>Your Hand:</h1>
-                </td>
-                <td>
-                    <!-- can only be seen and clicked on by the lord if everyone has joined -->
-                    <button class="bottons" id="startGameButton" onclick="startGame_justLord(event)">Start Game !</button>
-                </td>
-                <td>
-                    <button class="bottons" id="playButton" onclick="play(event)">PLAYYY</button>
-                </td>
-                <td>
-                    <button class="bottons" id="nineButton" onclick="nine(event)">WILDCARD 9</button> <!-- only shown if single 9 is selected -->
-                </td>
-                <td>
-                    <button class="bottons" id="passButton" onclick="pass(event)">PAAAASS</button> <!-- only shown if its a Derby -->
-                </td>
-                <td>
-                    <button class="bottons" id="foldButton" onclick="fold(event)">FFFFFOLD</button> <!-- hidden if its a Derby -->
-                </td>
-                <td>
-                    <button class="bottons" id="battleButton" onclick="battleSandwich(event)">BATTLE / SANDWICH</button>
-                </td>
-                <!--
-                <td>
-                    <button class="bottons" id="sandButton" onclick="reSandwich(event)">SANDWICH</button>
-                </td>
-                -->
-            </tr>
-        </table>
-    </div>
-
-    <table id="hand_T">
-        <tr id="hand_R"></tr>
-    </table>
-
-    <div>
+    <div class="navbar">
+        <div class="navbar_blackbar"></div>
+        <div class="nav_info">
+            <p>Players:</p>
+            <p id="p3"></p>
+        </div>
+        <div class="navbar_blackbar"></div>
+        <div class="nav_info">
+            <p>Deck Size:</p>
+            <p id="p4"></p>
+        </div>
+        <div class="navbar_blackbar"></div>
+        <div class="nav_info">
+            <p>Hand Size:</p>
+            <p id="p5"></p>
+        </div>
+        <div class="navbar_blackbar"></div>
+        <div class="nav_info">
+            <p>Refuel At:</p>
+            <p id="p6"></p>
+        </div>
+        <div class="navbar_blackbar"></div>
         <div>
-            <form id="chat_form">
-                <input id="chat_input" name="msg" placeholder=" chat message" />
-                <button class="bottons" id="chat_botton" onclick="sendChatMessege(event, this.form)">Send Messege</button>
-            </form>
+            <h1 class="navbar_title">King of the Hill</h1>
+        </div>
+        <div class="navbar_blackbar"></div>
+        <div class="nav_info">
+            <p>Cards Left:</p>
+            <p id="cardDeck"></p>
+        </div>
+        <div class="navbar_blackbar"></div>
+        <div class="nav_info">
+            <p id="roundLog_winner">No winner</p>
+            <p id="roundLog_score">yet ...</p>
+        </div>
+        <div class="navbar_blackbar"></div>
+        <div class="nav_info" id="hisb">
+            <p id="value">Higher</p>
+            <p>is better</p>
+        </div>
+        <div class="navbar_blackbar"></div>
+        <div class="nav_info" id="playType">Normal</div>
+        <div class="navbar_blackbar"></div>
+    </div>
+
+    <div class="container">
+
+        <div class="peeps_and_clock">
+            <table id="peeps_T">
+                <tr id="peeps_R"></tr>
+            </table>
+            <div class="clock_div">
+                <h2 id="clock_text">Timer:</h2>
+                <div id="clock">40</div>
+            </div>
         </div>
 
-        <div id="chat_div">
-            <ul id="chat_list"></ul>
+        <div id="cardPile_title_table">
+            <div class="cardPile_yourHand_title">
+                <h2 id="cardPile_h">Card Pile:</h2>
+            </div>
+            <div id="round_title"><h2 id="round_winner">The game has not begun yet.</h2></div>
         </div>
+
+        <div>
+            <table id="cardPile_T">
+                <tr id="cardPileRow"> </tr>
+            </table>
+        </div>
+
+        <div>
+            <table>
+                <tr>
+                    <td>
+                        <div class="cardPile_yourHand_title"><h2>Your Hand:</h2></div>
+                    </td>
+                    <td>
+                        <!-- can only be seen and clicked on by the lord if everyone has joined -->
+                        <button class="bottons" id="startGameButton" onclick="startGame_justLord(event)">Start Game !</button>
+                    </td>
+                    <td>
+                        <button class="bottons" id="playButton" onclick="play(event)">PLAYYY</button>
+                    </td>
+                    <td>
+                        <button class="bottons" id="nineButton" onclick="nine(event)">WILDCARD 9</button> <!-- only shown if single 9 is selected -->
+                    </td>
+                    <td>
+                        <button class="bottons" id="passButton" onclick="pass(event)">PAAAASS</button> <!-- only shown if its a Derby -->
+                    </td>
+                    <td>
+                        <button class="bottons" id="foldButton" onclick="fold(event)">FFFFFOLD</button> <!-- hidden if its a Derby -->
+                    </td>
+                    <td>
+                        <button class="bottons" id="battleButton" onclick="battleSandwich(event)">BATTLE / SANDWICH</button>
+                    </td>
+                    <!--
+                    <td>
+                        <button class="bottons" id="sandButton" onclick="reSandwich(event)">SANDWICH</button>
+                    </td>
+                    -->
+                </tr>
+            </table>
+        </div>
+
+        <table id="hand_T">
+            <tr id="hand_R"></tr>
+        </table>
+
+        <div>
+            <div>
+                <form id="chat_form">
+                    <input id="chat_input" name="msg" placeholder=" chat message" />
+                    <button class="bottons" id="chat_botton" onclick="sendChatMessege(event, this.form)">Send Messege</button>
+                </form>
+            </div>
+
+            <div id="chat_div">
+                <ul id="chat_list"></ul>
+            </div>
+        </div>
+
     </div>
 
   <!-- <script src="/socket.io/socket.io.js"></script> -->

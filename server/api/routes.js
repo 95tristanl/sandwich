@@ -1,14 +1,11 @@
 /**
  * Created by TristanLeVeille on 4/10/18.
- */
-
-/* Copyright TristanLeVeille, @2018 */
-
+ * Copyright TristanLeVeille, @2018
+**/
 
 "use strict";
 
 module.exports = app => {
-    // Creating a new game room ...
     app.post('/createdGame', async (req, res) => {
         try {
             //console.log("con from: " + req.connection.remoteAddress);
@@ -36,7 +33,7 @@ module.exports = app => {
                 end_round: ["false", ""],
                 isBattle: false,
                 isDerby: false,
-                orderOfPlay: {meh: "init"}, //just init with a val that is never going to be used
+                orderOfPlay: {init: "init"}, //just init with a val that is never going to be used
                 leavingAlert: "",
                 chatList: [], //hold last 10 chat messeges
                 roundLog: [],
@@ -51,7 +48,6 @@ module.exports = app => {
             res.status(500).send({err: "/createdGame - Error creating game... "});
         }
     });
-
 
     //joining a room
     app.post('/joinedGame', async(req, res) => { //not sure if works
@@ -85,7 +81,6 @@ module.exports = app => {
             }
         });
     });
-
 
     //get a specific games data
     app.post('/getGameData', async(req, res) => {
@@ -801,19 +796,22 @@ function sortHand(hand) {
 
 function whoWonBattle(battleStack_Moves, higherIsBetter) {
     let plays = [];
+    let wilds = [];
+    let firstWildAlreadyPlayed = false;
     for (let i = 0; i < battleStack_Moves.length; i++) { //only keep played moves when calculating winner
         if (battleStack_Moves[i][1] === "play") {
-            plays.push(battleStack_Moves[i]); //
+            plays.push(battleStack_Moves[i]);
         } else if (battleStack_Moves[i][1] === "wild") { //wild 9 was played, update higherIsBetter, will affect battle result
             higherIsBetter = !higherIsBetter;
-            //console.log("Now HIB: " + higherIsBetter);
-            /*
-            if (battleStack_Moves[i][0][0] === "wild_H") {
-                higherIsBetter = true;
-            } else {
-                higherIsBetter = false;
+            if (firstWildAlreadyPlayed) { //correct any other wild cards after first wild card
+                if (higherIsBetter) { //all wild cards coming in will be of same value, we DONT want this
+                    battleStack_Moves[i][0][0] = "wild_H";
+                } else {
+                    battleStack_Moves[i][0][0] = "wild_L";
+                }
             }
-            */
+            firstWildAlreadyPlayed = true;
+            wilds.push(battleStack_Moves[i]); // can have a tie if all people play a wild card in battle
         }
     }
     let winner = [];
@@ -837,6 +835,8 @@ function whoWonBattle(battleStack_Moves, higherIsBetter) {
                 winner.push(plays[i]);
             }
         }
+    } else if (wilds.length >= 2) { //there could be a tie because all people played wild cards
+        winner = wilds;
     } else {
         //somehow all poeple battling ran out of cards... possible but very, very, very, improbable
     }
