@@ -7,7 +7,7 @@
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
 </head>
 
-<body id="html_body">
+<body class="game_body">
 
     <div class="navbar">
         <div class="navbar_blackbar"></div>
@@ -79,38 +79,14 @@
             </table>
         </div>
 
-        <div>
-            <table>
-                <tr>
-                    <td>
-                        <div class="cardPile_yourHand_title"><h2>Your Hand:</h2></div>
-                    </td>
-                    <td>
-                        <!-- can only be seen and clicked on by the lord if everyone has joined -->
-                        <button class="bottons" id="startGameButton" onclick="startGame_justLord(event)">Start Game !</button>
-                    </td>
-                    <td>
-                        <button class="bottons" id="playButton" onclick="play(event)">PLAYYY</button>
-                    </td>
-                    <td>
-                        <button class="bottons" id="nineButton" onclick="nine(event)">WILDCARD 9</button> <!-- only shown if single 9 is selected -->
-                    </td>
-                    <td>
-                        <button class="bottons" id="passButton" onclick="pass(event)">PAAAASS</button> <!-- only shown if its a Derby -->
-                    </td>
-                    <td>
-                        <button class="bottons" id="foldButton" onclick="fold(event)">FFFFFOLD</button> <!-- hidden if its a Derby -->
-                    </td>
-                    <td>
-                        <button class="bottons" id="battleButton" onclick="battleSandwich(event)">BATTLE / SANDWICH</button>
-                    </td>
-                    <!--
-                    <td>
-                        <button class="bottons" id="sandButton" onclick="reSandwich(event)">SANDWICH</button>
-                    </td>
-                    -->
-                </tr>
-            </table>
+        <div class="buttons_menu">
+            <div class="cardPile_yourHand_title"><h2>Your Hand:</h2></div>
+            <button class="bottons" id="startGameButton" onclick="startGame_justLord(event)">START GAME</button>
+            <button class="bottons" id="playButton" onclick="play(event)">PLAYYY</button>
+            <button class="bottons" id="nineButton" onclick="nine(event)">WILDCARD 9</button> <!-- only shown if single 9 is selected -->
+            <button class="bottons" id="passButton" onclick="pass(event)">PAAAASS</button> <!-- only shown if its a Derby -->
+            <button class="bottons" id="foldButton" onclick="fold(event)">FFFFFOLD</button> <!-- hidden if its a Derby -->
+            <button class="bottons" id="battleButton" onclick="battleSandwich(event)">BATTLE / SANDWICH</button>
         </div>
 
         <table id="hand_T">
@@ -132,7 +108,6 @@
 
     </div>
 
-  <!-- <script src="/socket.io/socket.io.js"></script> -->
 <script src="src/game.js"></script>
 </body>
 

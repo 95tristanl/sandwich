@@ -166,7 +166,6 @@ function scoreboard_roundLog(roundLog) {
 //displays each players handSize, stillIn, yourTurn, score
 function scoreboard(server_dict_varData) {
     let pt_div = document.getElementById("playType");
-
     if (!user.isBattle && !user.isDerby && pt_div.style.backgroundColor !== "limegreen") { //normal
         pt_div.style.backgroundColor = "limegreen";
         pt_div.style.fontFamily = "geneva";
@@ -183,7 +182,6 @@ function scoreboard(server_dict_varData) {
         pt_div.style.lineHeight = "42px";
         pt_div.innerHTML = "Derby!";
     }
-
     for (let key in user.dict_varData) { //still in update
         if (server_dict_varData[key][1] !== user.dict_varData[key][1]) {
             let div_ = document.getElementById("sb_" + key);

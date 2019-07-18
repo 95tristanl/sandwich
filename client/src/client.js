@@ -32,10 +32,10 @@ function createNewGameRoom(event, form) {
         return;
     }
 
-    if (form.deckSize.value.match(/^[1-9]{1,2}$/) && parseInt(form.deckSize.value) >= 1 && parseInt(form.deckSize.value) <= 20) {
+    if (form.deckSize.value.match(/^[1-9]{1}$/) && parseInt(form.deckSize.value) >= 1 && parseInt(form.deckSize.value) <= 20) {
         //valid
     } else {
-        alert("Deck number must only contain numbers and be between 1 and 20!");
+        alert("Deck number must only contain numbers and be between 1 and 9!");
         return;
     }
 
@@ -86,10 +86,10 @@ function createNewGameRoom(event, form) {
 function joinGameRoom(event, form) {
     event.preventDefault();
 
-    if (form.username_j.value.match(/^[a-zA-Z0-9]{3,15}$/) ) {
+    if (form.username_j.value.match(/^[a-zA-Z0-9]{3,12}$/) ) {
         //valid
     } else {
-        alert("Username must only contain letters and numbers and must be 3-15 characters!");
+        alert("Username must only contain letters and numbers and must be 3-12 characters!");
         return;
     }
 
