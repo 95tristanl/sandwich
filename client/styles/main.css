@@ -59,17 +59,27 @@ body {
     background-color: #7F7C6A;
 }
 
+.menu {
+    display: flex;
+}
+
+.client_left_side {
+    display: flex;
+    flex-direction: column;
+    margin-left: 25px;
+}
+
 .client_title_container {
     background-color: #EAA754;
     border: 4px solid black;
     border-radius: 20px;
-    margin: 10px 10px 10px 10px;
+    margin: 10px 10px 10px 0px;
     padding: 10px 10px 10px 10px;
 }
 
 .formsContainer {
     display: flex;
-    padding: 10px 10px 10px 10px;
+    padding: 10px 10px 10px 0px;
     border-radius: 25px;
 }
 
@@ -78,7 +88,6 @@ body {
     padding: 10px 10px 10px 10px;
     border-radius: 20px;
     margin-right: 25px;
-    margin-left: 10px;
     border: 5px dashed black;
 }
 
@@ -107,14 +116,15 @@ body {
     margin: 10px 10px 10px 10px;
 }
 
-.client_text_div {
+.client_right_side {
     display: flex;
     flex-direction: column;
     background-color: #EAA754;
+    margin: 10px 25px 10px 0px;
     padding: 10px 10px 10px 10px;
     border-radius: 20px;
-    border: 5px dashed black;
-    margin-left: 25px;
+    border: 5px solid black;
+    margin-left: 15px;
 }
 
 .client_text_decoration_div {
@@ -457,4 +467,11 @@ body {
 
 #playType {
     font-family: geneva;
+}
+
+.rules {
+    margin: 10px 25px 10px 25px;
+    padding: 5px 5px 5px 5px;
+    background-color: #EEE5E9;
+    border-radius: 8px;
 }
