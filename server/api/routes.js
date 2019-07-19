@@ -225,7 +225,7 @@ module.exports = app => {
                                 //console.log("Already a battle");
                                 for (let i = 0; i < schema.battleStack_Players.length; i++) {
                                     if (schema.battleStack_Players[i] !== data.user) {
-                                        console.log(schema.battleStack_Players[i]);
+                                        //console.log(schema.battleStack_Players[i]);
                                         schema.dict_varData[schema.battleStack_Players[i]][4] = true; // they are sandwiched
                                         schema.dict_varData[schema.battleStack_Players[i]][2] = true; // set so they have chance to re-sand
                                         schema.markModified(`dict_varData.${schema.battleStack_Players[i]}`);

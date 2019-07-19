@@ -1,12 +1,12 @@
 {
-  "name": "server",
-  "version": "1.0.0",
-  "description": "",
+  "name": "",
+  "version": "2.0.0",
+  "description": "A dope online card game",
   "main": "server.js",
   "scripts": {
     "start": "node server/server.js"
   },
-  "author": "",
+  "author": "Tristan Le Veille",
   "license": "ISC",
   "dependencies": {
     "ajax": "0.0.4",
