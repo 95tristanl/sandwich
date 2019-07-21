@@ -123,8 +123,14 @@ body {
     margin: 10px 25px 10px 0px;
     padding: 10px 10px 10px 10px;
     border-radius: 20px;
-    border: 5px solid black;
+    border: 4px solid black;
     margin-left: 15px;
+}
+
+.white_div {
+    background-color: white;
+    border-radius: 15px;
+    margin: 10px 10px 10px 10px;
 }
 
 .client_text_decoration_div {

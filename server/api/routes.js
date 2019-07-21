@@ -41,7 +41,7 @@ module.exports = app => {
                 dict_varData: tmp2
             });
             await game.save();
-            //console.log("Created: " + req.body.roomID);
+            console.log("Created Game: " + req.body.lord + " : " + req.body.roomID);
             res.status(200).send({});
         } catch(err) {
             //console.log("/createdGame - Error creating game... " + err);
@@ -63,6 +63,7 @@ module.exports = app => {
                 } else {
                     if (Object.keys(schema.dict_hands).length < schema.gameSize) { //schema.players.length < schema.gameSize
                         if (schema.dict_hands[req.body.username] === undefined) {
+                            console.log("Joined Game: " + req.body.username + " : " + req.body.roomID);
                             //console.log("con from: " + req.connection.remoteAddress);
                             schema.dict_varData[req.body.username] = [0, false, false, 0, false];
                             schema.markModified(`dict_varData.${req.body.username}`); //manually give path to updated object for saving
@@ -155,6 +156,7 @@ module.exports = app => {
                             schema.dict_varData[key][3] = 0; //set everyones score to 0
                             schema.markModified(`dict_varData.${key}`); //save dict changes
                         }
+                        console.log("Started Game: " + req.body.roomID + " - - -");
                         await schema.save();
                         res.status(200).send({});
                     } catch (err) {
@@ -725,7 +727,7 @@ module.exports = app => {
             if (err) {
                 res.status(500).send({error: "/deleteRoom - error"});
             } else {
-                //console.log("del: " + req.body.roomID);
+                console.log("Ended Game: " + req.body.roomID + " ------");
                 res.status(200).send({});
             }
         });
