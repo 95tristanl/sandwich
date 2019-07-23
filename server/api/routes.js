@@ -190,8 +190,9 @@ module.exports = app => {
                         let isRottenEgg = false;
                         let stillIn_count = 0;
 
-                        //console.log(data.user);
-                        //console.log(data.usersMove);
+                        console.log("- - - " + data.user + " - - -");
+                        console.log(data.usersMove);
+                        console.log(schema.dict_varData);
 
                         if (!schema.isDerby) { //only set schema.isDerby if false, if schema.isDerby is true, want to keep it true until round ends
                             schema.isDerby = data.isDerby;
@@ -620,8 +621,8 @@ module.exports = app => {
                         } //else {
                             // sandwich wait is not over...
                         //}
-                        //console.log("end.");
-                        //console.log(schema.dict_varData);
+                        console.log("- - - end");
+                        console.log(schema.dict_varData);
                         await schema.save();
                         res.status(200).send({});
                     } catch (err) {
