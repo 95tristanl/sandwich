@@ -28,7 +28,7 @@ class Player { //keeps track of all the data
         //arrays
         this.players = [];
         this.hand = []; //the cards in your hand. Clients hand only gets updated by server after a round is over. Client updates its own hand and sends update to server
-        //this.hand_toServ = []; // for now not using this
+        this.hand_fallback = []; //make a copy in case data was not sent to server so can reset hand back to last state
         this.cardSelectedStack = []; //cards selected in his hand (list of ids)
         this.cardSelectedStack_toServ = []; //same as cardSelectedStack but just img string, not entire dom id
         this.playedMove_toServ = []; //a tmp var that is used to send the played move of user to server
@@ -373,7 +373,6 @@ function playGame_afterServerUpdate() { //called every second
                             document.getElementById("playButton").style.display = "block";
                         }
                     }
-
                     // - - - TIMER STUFF ***
                     let curTime = Math.round( ((new Date()).getTime())/1000 ); //user.timerObj.timeoutVar - ( (new Date()).getTime() - user.timerObj.startTimeMS);
                     let passedTime = Math.round( curTime - user.timerObj.startTimeMS );
@@ -390,27 +389,24 @@ function playGame_afterServerUpdate() { //called every second
                         divClock.innerHTML = timeLeft;
                     } else if (timeLeft < 0) {
                         divClock.style.backgroundColor = "white";
-                        divClock.innerHTML = '40';
+                        divClock.innerHTML = '45';
                         autoPlay();
                     }
                     // - - - TIMER STUFF ***
-
-                } else { //played
-                    //console.log("after played CSS");
-                    //console.log(user.cardSelectedStack);
-                    document.getElementById("foldButton").style.display = "none";
-                    document.getElementById("passButton").style.display = "none";
-                    document.getElementById("playButton").style.display = "none";
-                    document.getElementById("battleButton").style.display = "none";
-                    document.getElementById("nineButton").style.display = "none";
+                } else { //has played
+                    //document.getElementById("foldButton").style.display = "none";
+                    //document.getElementById("passButton").style.display = "none";
+                    //document.getElementById("playButton").style.display = "none";
+                    //document.getElementById("battleButton").style.display = "none";
+                    //document.getElementById("nineButton").style.display = "none";
                     //localStorage.setItem('onTheClock', "F"); //you are no longer on the clock
-                    if (divClock.style.backgroundColor !== "white" || divClock.innerHTML !== '40') { // reset clock
-                        divClock.style.backgroundColor = "white";
-                        divClock.innerHTML = '40';
-                    }
-                    user.hasPlayed = false; //reset hasPlayed bool
-                    user.yourTurn_FirstCall = true;
-                    user.yourTurn = false;
+                    //if (divClock.style.backgroundColor !== "white" || divClock.innerHTML !== '45') { // reset clock
+                    //    divClock.style.backgroundColor = "white";
+                    //    divClock.innerHTML = '45';
+                    //}
+                    //user.hasPlayed = false; //reset hasPlayed bool
+                    //user.yourTurn_FirstCall = true;
+                    //user.yourTurn = false;
                     let post_obj = {};
                     post_obj.roomID = roomID;
                     post_obj.user = user.username;
@@ -421,23 +417,51 @@ function playGame_afterServerUpdate() { //called every second
                     post_obj.isDerby = user.isDerby_toServ;
                     let post_JSON = JSON.stringify(post_obj);
                     //once played, send data to server, only after your turn
-                    $.post('/turnOver_update_clientToServer',
-                        {
-                            user_data: post_JSON
-                        },
-                        function(data, status) {
-                            user.isDerby_toServ = false;
-                            user.isBattle_toServ = ["F", ""];
-                            user.isSandwich_toServ = ["F", "", "", ""];
-                    });
+                    try {
+                        $.post('/turnOver_update_clientToServer',
+                            {
+                                user_data: post_JSON
+                            },
+                            function(data, status) {
+                                console.log("Status Play");
+                                console.log(status);
+                                if (status === "success") {
+                                    user.hasPlayed = false; //reset hasPlayed bool
+                                    user.yourTurn_FirstCall = true;
+                                    user.yourTurn = false;
+                                    user.isDerby_toServ = false;
+                                    user.isBattle_toServ = ["F", ""];
+                                    user.isSandwich_toServ = ["F", "", "", ""];
+                                    document.getElementById("foldButton").style.display = "none";
+                                    document.getElementById("passButton").style.display = "none";
+                                    document.getElementById("playButton").style.display = "none";
+                                    document.getElementById("battleButton").style.display = "none";
+                                    document.getElementById("nineButton").style.display = "none";
+                                    if (divClock.style.backgroundColor !== "white" || divClock.innerHTML !== '45') { // reset clock
+                                        divClock.style.backgroundColor = "white";
+                                        divClock.innerHTML = '45';
+                                    }
+                                } else {
+                                    alert("error, did not send... try again");
+                                    resetSelected();
+                                    user.hand = user.hand_fallback;
+                                    user.hasPlayed = false; // still need to play
+                                }
+                        });
+                    } catch {
+                        alert("uh... an error ocurred. It did not send.");
+                        resetSelected();
+                        user.hand = user.hand_fallback;
+                        user.hasPlayed = false; // still need to play
+                    }
                 }
             } else { //not your turn so wait or could have gotten sandwiched to get to this path
                 //localStorage.setItem('onTheClock', "F"); //you are no longer on the clock
                 user.yourTurn_FirstCall = true;
                 let divClock = document.getElementById("clock");
-                if (divClock.style.backgroundColor !== "white" || divClock.innerHTML !== '40') { // reset clock
+                if (divClock.style.backgroundColor !== "white" || divClock.innerHTML !== '45') { // reset clock
                     divClock.style.backgroundColor = "white";
-                    divClock.innerHTML = '40';
+                    divClock.innerHTML = '45';
                 }
                 document.getElementById("foldButton").style.display = "none";
                 document.getElementById("passButton").style.display = "none";
@@ -452,9 +476,9 @@ function playGame_afterServerUpdate() { //called every second
         } else { //not in round
             user.yourTurn_FirstCall = true;
             let divClock = document.getElementById("clock");
-            if (divClock.style.backgroundColor !== "white" || divClock.innerHTML !== '40') { // reset clock
+            if (divClock.style.backgroundColor !== "white" || divClock.innerHTML !== '45') { // reset clock
                 divClock.style.backgroundColor = "white";
-                divClock.innerHTML = '40';
+                divClock.innerHTML = '45';
             }
             document.getElementById("foldButton").style.display = "none";
             document.getElementById("passButton").style.display = "none";
@@ -566,14 +590,8 @@ function battleSandwich() { //if was not clients turn but decided to battle/sand
     }
 
     if (playable) {
-        //console.log("before batt");
-        //console.log(user.cardSelectedStack);
-        //console.log(user.hand);
         user.playedMove_toServ = [user.cardSelectedStack_toServ.slice(), 'play', user.username, []]; //going to serv
         removeResetSelectedFromHand(); //remove cards from cardSelectedStack after action
-        //console.log("after batt");
-        //console.log(user.cardSelectedStack);
-        //console.log(user.hand);
         let post_obj = {};
         post_obj.roomID = roomID;
         post_obj.user = user.username;
@@ -583,15 +601,30 @@ function battleSandwich() { //if was not clients turn but decided to battle/sand
         post_obj.isSandwich = user.isSandwich_toServ;
         post_obj.isDerby = user.isDerby_toServ;
         let post_JSON = JSON.stringify(post_obj);
-        $.post('/turnOver_update_clientToServer', //once played, send data to server, only after your turn
-            {
-                user_data: post_JSON
-            },
-            function(data, status) {
-                user.isDerby_toServ = false;
-                user.isBattle_toServ = ["F", ""];
-                user.isSandwich_toServ = ["F", "", "", ""];
-        });
+        try {
+            $.post('/turnOver_update_clientToServer', //once played, send data to server, only after your turn
+                {
+                    user_data: post_JSON
+                },
+                function(data, status) {
+                    console.log("Status Battle Play");
+                    console.log(status);
+                    if (status === "success") {
+                        user.isDerby_toServ = false;
+                        user.isBattle_toServ = ["F", ""];
+                        user.isSandwich_toServ = ["F", "", "", ""];
+                    } else {
+                        alert("error, did not send... try again");
+                        resetSelected();
+                        usersMove.hand = user.hand_fallback;
+                    }
+
+            });
+        } catch {
+            alert("uh... an error ocurred. It did not send.");
+            resetSelected();
+            user.hand = user.hand_fallback;
+        }
     }
 }
 
@@ -711,7 +744,6 @@ function play() {
 function pass() { //should only appear during a derby
     if (user.isDerby) {
         user.playedMove_toServ = [['pass'], 'pass', user.username, []];
-        //user.hand_toServ = user.hand.slice(0); //send whole hand back to server
         resetSelected();
         user.hasPlayed = true;
     }
@@ -755,7 +787,6 @@ function nine() { // should only appear if 1 nine is selected not during a derby
             }
             user.playedMove_toServ = [[isHigher], 'wild', user.username, []];
             removeResetSelectedFromHand();
-            document.getElementById("nineButton").style.display = "none";
             user.hasPlayed = true;
         } else {
             alert("9 is NOT PLAYABLE, its a DERBY...");
@@ -784,7 +815,6 @@ function autoPlay() {
         removeCardFromHand_AUTO(randomCardNum); //removes div/img from hand display given hand index and removes card from hand array []
     }
     user.hasPlayed = true;
-    //alert('Auto Played. You ran out of time.');
 }
 
 
@@ -963,16 +993,7 @@ function resetSelected() {
 function removeCardFromHand_AUTO(ind) {
     let id = document.getElementById("hand_R").children[ind].id; //td id
     document.getElementById("hand_R").children[ind].remove();
-    //user.hand_toServ = user.hand.slice(0); //take a snapshot of the hand
-    //console.log("before removing");
-    //console.log(user.hand);
-    //user.hand_toServ.splice(ind, 1); //removes card from hand array
     user.hand.splice(ind, 1); //removes card from hand array
-    //console.log("after removing");
-    //console.log(user.hand);
-
-    //user.hand.splice(ind, 1); //removes card from hand array
-    //user.hand_toServ = user.hand.slice(0); //dont touch the hand, make a copy and send that to serv, protect against race conditions
 }
 
 
@@ -980,19 +1001,13 @@ function removeCardFromHand_AUTO(ind) {
 //clears the user.cardSelectedStack back to empty []
 //removes played cards from the users hand array
 function removeResetSelectedFromHand() {
-    //user.hand_toServ = user.hand.slice(0); //take a snapshot of the hand
-    //console.log("before removing");
-    //console.log(user.hand);
+    user.hand_fallback = user.hand; //take snapshot of hand's state before mutating hand so that in event of server post error, can reset hand
     for (let i = 0; i < user.cardSelectedStack.length; i++) {
         document.getElementById("td_" + user.cardSelectedStack[i]).remove(); //removes td element so removes the td, div and card img from hand
-        //user.hand_toServ.splice( user.hand_toServ.indexOf(user.cardSelectedStack[i].split("_")[3]), 1); //remove card from users hand, [3] grabs the div string
-        user.hand.splice( user.hand.indexOf(user.cardSelectedStack[i].split("_")[3]), 1); //remove card from users hand, [3] grabs the div string
+        user.hand.splice(user.hand.indexOf(user.cardSelectedStack[i].split("_")[3]), 1); //remove card from users hand, [3] grabs the div string
     }
-    //user.hand = user.hand_toServ.slice(0); //gets rid of cards from hand / update hand
     user.cardSelectedStack = []; //reset
     user.cardSelectedStack_toServ = []; //reset
-    //console.log("after removing");
-    //console.log(user.hand);
 }
 
 //clears card pile
