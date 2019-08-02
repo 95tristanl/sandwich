@@ -224,11 +224,7 @@ function scoreboard(server_dict_varData) {
 
 //updates client with data from server/other players
 function playGame_keepUpdatingFromServer() { //called every timestep (some amount of seconds) COMING FROM SERVER
-    $.post('/update_ServerToClient',
-        {
-            roomID: roomID,
-            user: user.username
-        },
+    $.get(`/update_ServerToClient${roomID+"&"+user.username}`,
         function(data, status) {
             let server_data = JSON.parse(data.server_data);
             if (server_data.user_leaving !== "") {

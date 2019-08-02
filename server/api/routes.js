@@ -637,19 +637,19 @@ module.exports = app => {
     });
 
     //this just sends data and the hand back, /turnOver_update_clientToServer will do the hand updating/refueling
-    app.post('/update_ServerToClient', async(req, res) => {
-        await app.models.Game.findOne({roomID: req.body.roomID}, async function (err, schema) {
+    app.get('/update_ServerToClient:roomIdAndUser', async(req, res) => {
+        let roomAndUser = req.params.roomIdAndUser.split("&");
+        let room = roomAndUser[0];
+        let user = roomAndUser[1];
+        await app.models.Game.findOne({roomID: room}, async function (err, schema) {
             if (err) {
-                //console.log("/update_ServerToClient - Game Not Found!");
                 res.status(404).send({ error: '/update_ServerToClient - Game Not Found!' });
-                //return __handleError(err);
             } else {
                 if (schema === null) {
-                    //console.log("/update_ServerToClient - No Schema Found!");
                     res.status(300).send({error: "/update_ServerToClient - No Schema Found!"});
                 } else {
                     let server_obj = {};
-                    server_obj.hand = schema.dict_hands[req.body.user];
+                    server_obj.hand = schema.dict_hands[user];
                     server_obj.higherIsBetter =  schema.higherIsBetter;
                     server_obj.cardPile = schema.cardPile;
                     server_obj.cardsInDeck = schema.deck.length;
