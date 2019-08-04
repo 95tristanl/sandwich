@@ -7,80 +7,114 @@
 
 module.exports = app => {
     app.post('/createdGame', async (req, res) => {
-        try {
-            //console.log("con from: " + req.connection.remoteAddress);
-            let tmp1 = {};
-            let tmp2 = {};
-            tmp1[req.body.lord] = [];
-            tmp2[req.body.lord] = [0, false, false, 0, false];
-            let game = new app.models.Game({
-                lord: req.body.lord,
-                roomID: req.body.roomID,
-                deckSize: req.body.deckSize,
-                gameSize: req.body.gameSize,
-                handSize: req.body.handSize,
-                refuelNum: req.body.refuelNum,
-                players: [req.body.lord],
-                deck: [], // [cards]
-                cardPile: [], // [[cards played], type of play, username]
-                battleStack_Players: [],
-                battleStack_Moves: [],
-                derbyLastPlay: "", //keeps track of last played hand in a derby
-                sandwicher: "", //keeps track of person who last sandwiched
-                higherIsBetter: true,
-                startGame: false,
-                gameOver: ["F", ""],
-                end_round: ["false", ""],
-                isBattle: false,
-                isDerby: false,
-                orderOfPlay: {init: "init"}, //just init with a val that is never going to be used
-                leavingAlert: "",
-                chatList: [], //hold last 10 chat messeges
-                roundLog: [],
-                dict_hands: tmp1,
-                dict_varData: tmp2
-            });
-            await game.save();
-            console.log("Created Game: " + req.body.lord + " : " + req.body.roomID);
-            res.status(200).send({});
-        } catch(err) {
-            //console.log("/createdGame - Error creating game... " + err);
-            res.status(500).send({err: "/createdGame - Error creating game... "});
+        let errorMsg = "";
+        if (!req.body.lord.match(/^[a-zA-Z0-9]{3,12}$/) ) {
+            errorMsg = "Username must only contain letters and numbers and must be 3-12 characters!";
+        }
+        if (!req.body.roomID.match(/^[a-zA-Z0-9]{5,20}$/) ) {
+            errorMsg = "RoomID must only contain letters and numbers and must be 5-20 characters!";
+        }
+        if (!req.body.gameSize.match(/^[1-9]{1,2}$/) && parseInt(req.body.gameSize) >= 2 && parseInt(req.body.gameSize) <= 20) {
+            errorMsg = "Game size must be a number between 2 and 20!";
+        }
+        if (!req.body.deckSize.match(/^[1-9]{1}$/) && parseInt(req.body.deckSize) >= 1 && parseInt(req.body.deckSize) < 10) {
+            errorMsg = "Deck number must be a number between 1 and 9!";
+        }
+        if (!req.body.handSize.match(/^[1-9]{1,2}$/) && parseInt(req.body.handSize) >= 1 && parseInt(req.body.handSize) <= 20) {
+            errorMsg = "Hand size must be a number between 1 and 20!";
+        }
+        if (!req.body.refuelNum.match(/^[0-9]{1,2}$/) && parseInt(req.body.refuelNum) >= 0 &&
+            parseInt(req.body.refuelNum) < parseInt(req.body.handSize)) {
+            errorMsg = "Refuel number must be a positive number and less than the hand size!";
+        }
+        if (((54 * parseInt(req.body.deckSize))/parseInt(req.body.gameSize)) < parseInt(req.body.handSize)) {
+            errorMsg = "The math regarding the amount of decks, game size, and hand size you want does not add up here! Try again.";
+        }
+        if (errorMsg === "") {
+            try {
+                //console.log("con from: " + req.connection.remoteAddress);
+                let tmp1 = {};
+                let tmp2 = {};
+                tmp1[req.body.lord] = [];
+                tmp2[req.body.lord] = [0, false, false, 0, false];
+                let game = new app.models.Game({
+                    lord: req.body.lord,
+                    roomID: req.body.roomID,
+                    deckSize: req.body.deckSize,
+                    gameSize: req.body.gameSize,
+                    handSize: req.body.handSize,
+                    refuelNum: req.body.refuelNum,
+                    players: [req.body.lord],
+                    deck: [], // [cards]
+                    cardPile: [], // [[cards played], type of play, username]
+                    battleStack_Players: [],
+                    battleStack_Moves: [],
+                    derbyLastPlay: "", //keeps track of last played hand in a derby
+                    sandwicher: "", //keeps track of person who last sandwiched
+                    higherIsBetter: true,
+                    startGame: false,
+                    gameOver: ["F", ""],
+                    end_round: ["false", ""],
+                    isBattle: false,
+                    isDerby: false,
+                    orderOfPlay: {init: "init"}, //just init with a val that is never going to be used
+                    leavingAlert: "",
+                    chatList: [], //hold last 10 chat messeges
+                    roundLog: [],
+                    dict_hands: tmp1,
+                    dict_varData: tmp2
+                });
+                await game.save();
+                console.log("Created Game: " + req.body.lord + " : " + req.body.roomID);
+                res.status(200).send({error: ""});
+            } catch(err) {
+                res.status(500).send({error: "Error creating game... "});
+            }
+        } else {
+            res.status(200).send({error: errorMsg});
         }
     });
 
     //joining a room
     app.post('/joinedGame', async(req, res) => { //not sure if works
-        await app.models.Game.findOne({roomID: req.body.roomID}, async function (err, schema) {
-            if (err) {
-                //console.log("/joinedGame - Game Not Found!");
-                res.status(404).send({error: "/joinedGame - Game Not Found!"});
-                //return __handleError(err);
-            } else {
-                if (schema === null) {
-                    //console.log("/joinedGame - No Schema Found!");
-                    res.status(300).send({error: "/joinedGame - No Schema Found!"});
+        let errorMsg = "";
+        if (!req.body.username.match(/^[a-zA-Z0-9]{3,12}$/) ) {
+            errorMsg = "Username must only contain letters and numbers and must be 3-12 characters!";
+        }
+        if (!req.body.roomID.match(/^[a-zA-Z0-9]{5,20}$/) ) {
+            errorMsg = "RoomID must only contain letters and numbers and must be 5-20 characters!";
+        }
+        if (errorMsg === "") { //otherwise try and join
+            await app.models.Game.findOne({roomID: req.body.roomID}, async function (err, schema) {
+                if (err) {
+                    res.status(200).send({error: "Error!"});
                 } else {
-                    if (Object.keys(schema.dict_hands).length < schema.gameSize) { //schema.players.length < schema.gameSize
-                        if (schema.dict_hands[req.body.username] === undefined) {
-                            console.log("Joined Game: " + req.body.username + " : " + req.body.roomID);
-                            //console.log("con from: " + req.connection.remoteAddress);
-                            schema.dict_varData[req.body.username] = [0, false, false, 0, false];
-                            schema.markModified(`dict_varData.${req.body.username}`); //manually give path to updated object for saving
-                            schema.dict_hands[req.body.username] = [];
-                            schema.markModified(`dict_hands.${req.body.username}`); //manually give path to updated object for saving
-                            schema.players.push(req.body.username);
-                            await schema.save();
-                            res.status(200).send({});
-                        } else {
-                            res.status(300).send({err: '/joinedGame - That Username is already Taken!'});
-                        }
+                    if (schema === null) {
+                        res.status(200).send({error: "Game Not Found!"});
                     } else {
-                        res.status(300).send({err: '/joinedGame - Game Is Full!'});
+                        if (Object.keys(schema.dict_hands).length < schema.gameSize) { //schema.players.length < schema.gameSize
+                            if (schema.dict_hands[req.body.username] === undefined) {
+                                console.log("Joined Game: " + req.body.username + " : " + req.body.roomID);
+                                //console.log("con from: " + req.connection.remoteAddress);
+                                schema.dict_varData[req.body.username] = [0, false, false, 0, false];
+                                schema.markModified(`dict_varData.${req.body.username}`); //manually give path to updated object for saving
+                                schema.dict_hands[req.body.username] = [];
+                                schema.markModified(`dict_hands.${req.body.username}`); //manually give path to updated object for saving
+                                schema.players.push(req.body.username);
+                                await schema.save();
+                                res.status(200).send({error: ""});
+                            } else {
+                                res.status(200).send({error: 'Username is already Taken!'});
+                            }
+                        } else {
+                            res.status(200).send({error: 'Game Is Full!'});
+                        }
                     }
                 }
-            }
-        });
+            });
+        } else {
+            res.status(300).send({error: errorMsg});
+        }
     });
 
     //get a specific games data
