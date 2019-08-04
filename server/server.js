@@ -22,7 +22,6 @@ const setupServer = async () => {
         await mongoose.connect(connectionString, {useNewUrlParser: true});
         console.log("MongoDB connected on: " + connectionString);
     } catch (err) {
-        //console.log(err);
         console.log("Could not connect to mongo...");
         process.exit(-1);
     }
