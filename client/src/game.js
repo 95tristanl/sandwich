@@ -132,7 +132,7 @@ window.onload = () => {
                     clearInterval(waitToStartGame_interv); //interval is stopped -> startGame is true -> everyone is here and lord pressed start button
                     setHand();
                     document.getElementById("round_winner").innerHTML = "";
-                    user.timerObj.keepUpdating = setInterval(playGame_keepUpdatingFromServer, 200); //this starts game. goes every .2sec
+                    user.timerObj.keepUpdating = setInterval(playGame_keepUpdatingFromServer, 300); //this starts game. goes every .2sec
                 }
         });
     }
@@ -149,8 +149,12 @@ function startGame_justLord() {
                 startGame: setVal
             },
             function(data, status) {
+                if (status === "success") {
+                    document.getElementById('startGameButton').style.display = "none";
+                } else {
+                    console.log("Error: could not start game...");
+                }
             });
-        document.getElementById('startGameButton').style.display = "none";
     } else {
         alert("Sorry, can't start until everyone is here.");
     }

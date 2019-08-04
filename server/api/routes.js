@@ -152,11 +152,9 @@ module.exports = app => {
     app.post('/sendStartGame', async(req, res) => {
         await app.models.Game.findOne({roomID: req.body.roomID}, async function (err, schema) {
             if (err) {
-                //console.log("/sendStartGame - Game Not Found!");
                 res.status(404).send({ error: '/sendStartGame - Game Not Found!' });
             } else {
                 if (schema === null) {
-                    //console.log("/sendStartGame - No Schema Found!");
                 } else {
                     try {
                         for(let q = 0; q < schema.players.length; q++) { //creates the order of play (whos after who) dictionary
@@ -192,10 +190,11 @@ module.exports = app => {
                         }
                         console.log("Started Game: " + req.body.roomID + " - - -");
                         await schema.save();
-                        res.status(200).send({});
+                        res.status(200).send({error: ""});
                     } catch (err) {
-                        res.status(404).send({ error: '/sendStartGame - Game Not Found!' });
-                        //return __handleError(err);
+                        console.log("err:");
+                        console.log(err);
+                        res.status(404).send({error: '/sendStartGame - Game Not Found!'});
                     }
                 }
             }
@@ -659,7 +658,7 @@ module.exports = app => {
                         console.log("- - - end");
                         console.log(schema.dict_varData);
                         await schema.save();
-                        res.status(200).send({});
+                        res.status(200).send({error: ""});
                     } catch (err) {
                         //console.log('/turnOver_update_clientToServer - err');
                         res.status(404).send({ error: '/turnOver_update_clientToServer - UPDATE after turn FAILED!' });
@@ -698,7 +697,8 @@ module.exports = app => {
                     server_obj.user_leaving = schema.leavingAlert;
                     let server_JSON = JSON.stringify(server_obj);
                     res.status(200).send({
-                        server_data: server_JSON
+                        server_data: server_JSON,
+                        error: ""
                     });
                 }
             }
@@ -721,7 +721,7 @@ module.exports = app => {
                         schema.cardPile = []; //reset
                         schema.end_round = ["false", ""]; //reset
                         await schema.save();
-                        res.status(200).send({});
+                        res.status(200).send({error: ""});
                     } catch (err) {
                         res.status(404).send({ error: '/start_new_round - Could not save schema data!' });
                     }
@@ -748,7 +748,7 @@ module.exports = app => {
                             schema.chatList.splice(10, 1); //remove last / 11th element
                         }
                         await schema.save();
-                        res.status(200).send({});
+                        res.status(200).send({error: ""});
                     } catch (err) {
                         res.status(404).send({error: '/chatRoom - Could not save schema data!'});
                     }
@@ -764,7 +764,7 @@ module.exports = app => {
                 res.status(500).send({error: "/deleteRoom - error"});
             } else {
                 console.log("Ended Game: " + req.body.roomID + " ------");
-                res.status(200).send({});
+                res.status(200).send({error: ""});
             }
         });
     });
@@ -779,7 +779,7 @@ module.exports = app => {
                     //console.log("In left room");
                     schema.leavingAlert = req.body.user;
                     await schema.save();
-                    res.status(200).send({});
+                    res.status(200).send({error: ""});
                 } catch (err) {
                     res.status(404).send({error: '/leftRoom - Could not save schema data!'});
                 }
