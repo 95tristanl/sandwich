@@ -1,4 +1,4 @@
-# Sandwich
+# King of the Hill / Sandwich
 multiplayer card game web app:
 
 The Official (and ever changing) Rules
