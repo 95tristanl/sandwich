@@ -3,6 +3,8 @@
 **/
 "use strict";
 
+import $ from "jquery";
+
 //var sessionstorage = require('sessionstorage');
 var curUser = "No_Username";
 var roomID = "No_Room_ID";
