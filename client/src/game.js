@@ -16,8 +16,6 @@ so circle: server (data)-> client,    if clients turn/turn just finishes (data)-
 
 "use strict";
 
-import $ from "jquery";
-
 class Player { //keeps track of all the data
     constructor(username) {
         //nums and strings
