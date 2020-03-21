@@ -1,11 +1,7 @@
 /**
  * Created by TristanLeVeille on 7/31/18.
 **/
-"use strict";
-
-var script = document.createElement('script');
-script.src = '//code.jquery.com/jquery-1.11.0.min.js';
-document.getElementsByTagName('head')[0].appendChild(script);
+//"use strict";
 
 //var sessionstorage = require('sessionstorage');
 var curUser = "No_Username";

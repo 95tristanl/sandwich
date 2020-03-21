@@ -16,9 +16,9 @@ const setupServer = async () => {
     app.use(bodyParser.json());
 
     try {
-        //await mongoose.connect("mongodb://localhost:27017/leveiltt"); //mongo on aws or some box
-        //console.log("MongoDB connected: mongodb://localhost:32768/leveiltt"); //kitematic
-        let connectionString = process.env.MONGODB_URI || "mongodb://localhost:27017/sandwich";
+        let connectionString = process.env.MONGODB_URI || "mongodb://localhost:27017/sandwich"; // Heroku
+        //let connectionString = "mongodb://localhost:27017/leveiltt"; //mongo on aws or some box
+        //let connectionString = "mongodb://localhost:32768/leveiltt"; //kitematic
         await mongoose.connect(connectionString, {useNewUrlParser: true});
         console.log("MongoDB connected on: " + connectionString);
     } catch (err) {
